@@ -1,0 +1,85 @@
+{% extends 'headerCRUD.html.jinja' %}
+
+
+{% block content %}
+
+
+    
+
+
+    <h1 class="titulo"> {% block title %} Únete a nuestra familia {% endblock %}</h1>
+
+   
+
+        <form class method="POST" Content-Type='application/json'>
+
+            <article>
+
+            <div>
+                <input type="hidden" class="form-control" name="id_usuario" 
+                placeholder="id_usuario"
+                value="{{ request.form['id_usuario'] }}">
+                <br>
+            </div> 
+            <div>
+                <label for="nombre">Nombre: </label><br>
+                <input type="text" class="form-control" name="nombre" 
+                placeholder="nombre"
+                value="{{ request.form['nombre'] }}">
+                <br>
+            </div>
+            <div>
+                <label for="apellido">Apellido: </label><br>
+                <input type="text" class="form-control" name="apellido" 
+                placeholder="nombre"
+                value="{{ request.form['apellido'] }}">
+                <br>
+            </div>
+            <div>
+                <label for="cedula_identidad">Cédula de identidad:: </label><br>
+                <input type="text" class="form-control" name="Cédula de identidad" 
+                placeholder="cedula_identidad"
+                value="{{ request.form['cedula_identidad'] }}">
+                <br>
+            </div>
+            <div>
+                <label for="fecha_nacimiento">Fecha de nacimiento: </label><br>
+                <input type="text" class="form-control" name="Fecha de nacimiento" 
+                placeholder="fecha_nacimiento"
+                value="{{ request.form['fecha_nacimiento'] }}">
+                <br>
+            </div>
+            <div>
+                <label for="direccion">Dirección: </label><br>
+                <input type="text" class="form-control" name="direccion" 
+                placeholder="direccion"
+                value="{{ request.form['direccion'] }}">
+                <br>
+            </div>
+            <div>
+                <label for="correo_electronico">Correo eléctronico: </label><br>
+                <input type="text" class="form-control" name="correo_electronico" 
+                placeholder="correo_electronico"
+                value="{{ request.form['correo_electronico'] }}">
+                <br>
+            </div>
+            <div>
+                <label for="contrasena">Descripción: </label><br>
+                <input type="text" class="form-control" name="contrasena" 
+                placeholder="contrasena"
+                value="{{ request.form['contrasena'] }}">
+                <br>
+            </div>
+            <div>
+                <input type="hidden" class="form-control" name="tipo_usuario" 
+                placeholder="tipo_usuario"
+                value="{{ request.form['tipo_usuario'] }}">
+                <br>
+            </div> 
+
+
+
+
+{% endblock %}
+
+

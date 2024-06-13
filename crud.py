@@ -3,6 +3,27 @@ import models, schemas
 from pydantic import Field
 
 
+def get_user_by_email(db: Session, correo: str):
+    print("Db: ", db, "Correo eléctronico: ", correo)
+    return db.query(models.Usuario).filter(models.Usuario.correo_electronico == correo).first()
+
+def get_user(db: Session, user_id: int):
+    return db.query(models.Usuario).filter(models.Usuario.id_usuario == user_id).first()
+
+def get_users(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.Usuario).offset(skip).limit(limit).all()
+
+def create_user(db: Session, user: schemas.UserCreate):
+    fake_hashed_password = user.contrasena + "notreallyhashed"
+    db_user = models.Usuario(email=user.correo_electronico, hashed_password=fake_hashed_password)
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+
+
+"""
 
 #Buscar item por su id
 def get_item(db: Session, item_id: int):
@@ -43,3 +64,8 @@ def delete_item(db: Session, item_id: int):
         db.commit()
         return db_item
     return None
+
+
+
+
+"""

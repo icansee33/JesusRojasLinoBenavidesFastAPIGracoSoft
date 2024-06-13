@@ -15,6 +15,7 @@ class Usuario(Base):
     contrasena = Column(String(255), nullable=False)
     tipo_usuario = Column(String(50), nullable=False)
 
+
 class Producto(Base):
     __tablename__ = 'productos'
     id_producto = Column(Integer, primary_key=True)
