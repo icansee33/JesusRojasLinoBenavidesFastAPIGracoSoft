@@ -13,6 +13,9 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     contrasena: str
 
+class UserUpdate(UserBase):
+    contrasena: str
+
 class User(UserBase):
     id_usuario: int
 

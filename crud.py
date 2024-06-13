@@ -1,71 +1,54 @@
 from sqlalchemy.orm import Session
 import models, schemas
 from pydantic import Field
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-def get_user_by_email(db: Session, correo: str):
-    print("Db: ", db, "Correo eléctronico: ", correo)
-    return db.query(models.Usuario).filter(models.Usuario.correo_electronico == correo).first()
-
-def get_user(db: Session, user_id: int):
-    return db.query(models.Usuario).filter(models.Usuario.id_usuario == user_id).first()
-
-def get_users(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Usuario).offset(skip).limit(limit).all()
+def get_password_hash(password):
+    return pwd_context.hash(password)
 
 def create_user(db: Session, user: schemas.UserCreate):
-    fake_hashed_password = user.contrasena + "notreallyhashed"
-    db_user = models.Usuario(email=user.correo_electronico, hashed_password=fake_hashed_password)
+    db_user = models.User(
+        nombre=user.nombre,
+        apellido=user.apellido,
+        cedula_identidad=user.cedula_identidad,
+        fecha_nacimiento=user.fecha_nacimiento,
+        direccion=user.direccion,
+        correo_electronico=user.correo_electronico,
+        contrasena=get_password_hash(user.contrasena),
+        tipo_usuario=user.tipo_usuario
+    )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
     return db_user
 
+def get_user_by_email(db: Session, email: str):
+    return db.query(models.User).filter(models.User.correo_electronico == email).first()
 
+def get_user_by_id(db: Session, user_id: int):
+    return db.query(models.User).filter(models.User.id == user_id).first()
 
-"""
-
-#Buscar item por su id
-def get_item(db: Session, item_id: int):
-    return db.query(models.Item).filter(models.Item.id == item_id).first()
-
-#Buscar todos los items
-def get_items(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Item).offset(skip).limit(limit).all()
-
-#Crear item
-def create_item(db: Session, item: schemas.ItemCreate):
-    db_item = models.Item(**item.model_dump())
-    print("DB item: ", db_item)
-    db.add(db_item)
+def update_user(db: Session, user_id: int, user: schemas.UserUpdate):
+    db_user = get_user_by_id(db, user_id)
+    if db_user is None:
+        return None
+    for key, value in user.dict().items():
+        if value:
+            if key == 'contrasena':
+                setattr(db_user, key, get_password_hash(value))
+            else:
+                setattr(db_user, key, value)
     db.commit()
-    db.refresh(db_item)
-    print("Db items: ", db_item)
-    return db_item
+    db.refresh(db_user)
+    return db_user
 
-#Modificar item
-def update_item(db: Session, item_id: int, item_update: schemas.ItemUpdate):
-    db_item = db.query(models.Item).filter(models.Item.id == item_id).first()
-    if db_item:
-        db_item.name = item_update.name
-        db_item.description = item_update.description
-        db.commit()
-        db.refresh(db_item)
-        print("Updated item: ", db_item)
-        return db_item
-    return None
-
-
-#Delete item
-def delete_item(db: Session, item_id: int):
-    db_item = db.query(models.Item).filter(models.Item.id == item_id).first()
-    if db_item:
-        db.delete(db_item)
-        db.commit()
-        return db_item
-    return None
-
-
-
-
-"""
+def delete_user(db: Session, user_id: int):
+    db_user = get_user_by_id(db, user_id)
+    if db_user is None:
+        return None
+    db.delete(db_user)
+    db.commit()
+    return db_user
