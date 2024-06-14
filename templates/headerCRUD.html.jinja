@@ -3,24 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" type="text/css"/>
+    <link href="{{url_for('static', path='/styles.css')}}" rel="stylesheet">
 
     <title>{% block title %} {% endblock %}</title>
 </head>
     <body>
 
         <header>
-            <img src="\static/img/Logo.png" alt="Logo">
+            <img src="/static/img/Logo.png" alt="Logo">
                 <nav>
-                    <a href="{{url_for('')}}">Iniciar Sesión</a>
-                    <a href="{{url_for('')}}">Registrarse</a>
-                    <a href="{{url_for('')}}">Salir</a>
+                    <a>Iniciar Sesión</a>
+                    <a href="{{url_for('create_usuario_form')}}">Registrarse</a>
+                    <a href="{{url_for('home_no_iniciado')}}">Salir</a>      
                 </nav>
         </header>
         
             
             <div class="banner">
-                <img class="Banner_img" src="\static\img/Banner1.png" alt="Banner1"> 
+                <img class="Banner_img" src="/static/img/Banner1.jpg" alt="Banner1"> 
             </div>
             
 

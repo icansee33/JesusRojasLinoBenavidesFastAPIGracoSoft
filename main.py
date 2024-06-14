@@ -41,6 +41,15 @@ def create_usuario(user: schemas.UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email already registered")
     return crud.create_user(db=db, user=user)
 
+@app.get("/usuario/create/", response_class=HTMLResponse)
+async def create_usuario_form(request: Request):
+    print("Usuario: ", )
+    return templates.TemplateResponse("crearUsuario.html.jinja", {"request": request})
+
+
+@app.get("/", response_class=HTMLResponse)
+async def home_no_iniciado(request: Request, db: Session = Depends(get_db)):
+    return templates.TemplateResponse("homeNoIniciado.html.jinja", {"request": request})
 
 
 @app.get("/user/{user_id}", response_class=HTMLResponse)
@@ -50,9 +59,6 @@ async def read_usuario(request: Request, item_id: int, db: Session = Depends(get
         raise HTTPException(status_code=404, detail="User not found")
     return templates.TemplateResponse("perfilUsuario.html", {"request": request, "item": item})
 
-@app.get("/usario/create/", response_class=HTMLResponse)
-async def create_usuario_form(request: Request):
-    return templates.TemplateResponse("agregarUsuario.html.jinja", {"request": request})
 
 @app.get("/usuario/update/{user_id}/", response_class=HTMLResponse)
 async def update_usuario_form(request: Request, item_id: int, db: Session = Depends(get_db)):

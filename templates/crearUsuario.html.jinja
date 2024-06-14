@@ -44,7 +44,7 @@
             </div>
             <div>
                 <label for="fecha_nacimiento">Fecha de nacimiento: </label><br>
-                <input type="text" class="form-control" name="Fecha de nacimiento" 
+                <input type="date" class="form-control" name="Fecha de nacimiento" 
                 placeholder="fecha_nacimiento"
                 value="{{ request.form['fecha_nacimiento'] }}">
                 <br>
@@ -64,7 +64,7 @@
                 <br>
             </div>
             <div>
-                <label for="contrasena">Descripción: </label><br>
+                <label for="contrasena">Contraseña: </label><br>
                 <input type="text" class="form-control" name="contrasena" 
                 placeholder="contrasena"
                 value="{{ request.form['contrasena'] }}">
@@ -76,6 +76,8 @@
                 value="{{ request.form['tipo_usuario'] }}">
                 <br>
             </div> 
+            <input div="formcenter" type="submit" value="Submit">
+        </form>
 
 
 

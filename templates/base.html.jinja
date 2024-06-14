@@ -4,15 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="{{url_for('static', path='/styles.css')}}" rel="stylesheet">
-    <title>Item</title>   
+    <title>Home</title>   
 </head>
 <body>
 
     <header>
-                <img  src="/static/img/Logo.png" alt="Logo">
-                <nav>
-                    <a href="{{ url_for('read_items') }}">Lista de items</a>
-                </nav>
+        <img  src="/static/img/Logo.png" alt="Logo">
+            <nav>
+                <a>Iniciar Sesión</a>
+                <a href="{{url_for('create_usuario_form')}}">Registrarse</a>
+                <a href="{{url_for('home_no_iniciado')}}">Salir</a>        
+            </nav>
             
     </header>
                 
