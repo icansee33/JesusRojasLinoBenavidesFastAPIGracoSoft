@@ -1,8 +1,8 @@
 """init
 
-Revision ID: 44be600a5d6b
+Revision ID: 6b78e2943fbf
 Revises: 
-Create Date: 2024-06-13 09:08:44.022841
+Create Date: 2024-06-14 11:38:51.947551
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '44be600a5d6b'
+revision: str = '6b78e2943fbf'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -25,27 +25,17 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('nombre')
     )
     op.create_table('usuarios',
-    sa.Column('id_usuario', sa.Integer(), nullable=False),
+    sa.Column('cedula_identidad', sa.Integer(), nullable=False),
     sa.Column('nombre', sa.String(length=50), nullable=False),
     sa.Column('apellido', sa.String(length=50), nullable=False),
-    sa.Column('cedula_identidad', sa.String(length=20), nullable=False),
     sa.Column('fecha_nacimiento', sa.Date(), nullable=False),
     sa.Column('direccion', sa.String(length=255), nullable=False),
     sa.Column('correo_electronico', sa.String(length=100), nullable=False),
     sa.Column('contrasena', sa.String(length=255), nullable=False),
     sa.Column('tipo_usuario', sa.String(length=50), nullable=False),
-    sa.PrimaryKeyConstraint('id_usuario'),
-    sa.UniqueConstraint('cedula_identidad'),
+    sa.ForeignKeyConstraint(['tipo_usuario'], ['roles.nombre'], ),
+    sa.PrimaryKeyConstraint('cedula_identidad'),
     sa.UniqueConstraint('correo_electronico')
-    )
-    op.create_table('invitaciones',
-    sa.Column('id_invitacion', sa.Integer(), nullable=False),
-    sa.Column('id_artesano', sa.Integer(), nullable=False),
-    sa.Column('correo_destino', sa.String(length=100), nullable=False),
-    sa.Column('fecha_envio', sa.Date(), nullable=False),
-    sa.Column('estado', sa.String(length=50), nullable=False),
-    sa.ForeignKeyConstraint(['id_artesano'], ['usuarios.id_usuario'], ),
-    sa.PrimaryKeyConstraint('id_invitacion')
     )
     op.create_table('pedidos',
     sa.Column('id_pedido', sa.Integer(), nullable=False),
@@ -54,7 +44,7 @@ def upgrade() -> None:
     sa.Column('cantidad_productos', sa.Integer(), nullable=False),
     sa.Column('metodo_env', sa.String(length=50), nullable=False),
     sa.Column('estado', sa.String(length=50), nullable=False),
-    sa.ForeignKeyConstraint(['id_cliente'], ['usuarios.id_usuario'], ),
+    sa.ForeignKeyConstraint(['id_cliente'], ['usuarios.cedula_identidad'], ),
     sa.PrimaryKeyConstraint('id_pedido')
     )
     op.create_table('productos',
@@ -67,7 +57,7 @@ def upgrade() -> None:
     sa.Column('dimensiones', sa.String(length=50), nullable=False),
     sa.Column('peso', sa.Double(precision=10, asdecimal=2), nullable=False),
     sa.Column('imagen', sa.String(length=255), nullable=False),
-    sa.ForeignKeyConstraint(['id_artesano'], ['usuarios.id_usuario'], ),
+    sa.ForeignKeyConstraint(['id_artesano'], ['usuarios.cedula_identidad'], ),
     sa.PrimaryKeyConstraint('id_producto')
     )
     op.create_table('calificaciones',
@@ -76,7 +66,7 @@ def upgrade() -> None:
     sa.Column('id_cliente', sa.Integer(), nullable=False),
     sa.Column('calificacion', sa.Integer(), nullable=False),
     sa.Column('comentario', sa.String(), nullable=True),
-    sa.ForeignKeyConstraint(['id_cliente'], ['usuarios.id_usuario'], ),
+    sa.ForeignKeyConstraint(['id_cliente'], ['usuarios.cedula_identidad'], ),
     sa.ForeignKeyConstraint(['id_producto'], ['productos.id_producto'], ),
     sa.PrimaryKeyConstraint('id_calificacion')
     )
@@ -98,7 +88,7 @@ def upgrade() -> None:
     sa.Column('fecha_encargo', sa.Date(), nullable=False),
     sa.Column('metodo_envio', sa.String(length=50), nullable=False),
     sa.Column('descripcion_encargo', sa.String(), nullable=False),
-    sa.ForeignKeyConstraint(['cliente_id'], ['usuarios.id_usuario'], ),
+    sa.ForeignKeyConstraint(['cliente_id'], ['usuarios.cedula_identidad'], ),
     sa.ForeignKeyConstraint(['producto_id'], ['productos.id_producto'], ),
     sa.PrimaryKeyConstraint('encargo_id')
     )
@@ -134,7 +124,6 @@ def downgrade() -> None:
     op.drop_table('calificaciones')
     op.drop_table('productos')
     op.drop_table('pedidos')
-    op.drop_table('invitaciones')
     op.drop_table('usuarios')
     op.drop_table('roles')
     # ### end Alembic commands ###

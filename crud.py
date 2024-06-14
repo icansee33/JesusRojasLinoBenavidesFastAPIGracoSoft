@@ -25,14 +25,16 @@ def create_user(db: Session, user: schemas.UserCreate):
     db.refresh(db_user)
     return db_user
 
-def get_user_by_email(db: Session, email: str):
-    return db.query(models.User).filter(models.User.correo_electronico == email).first()
 
-def get_user_by_id(db: Session, user_id: int):
-    return db.query(models.User).filter(models.User.id == user_id).first()
+
+def get_user_by_email(db: Session, email: str):
+    return db.query(models.Usuario).filter(models.Usuario.correo_electronico == email).first()
+
+def get_user_by_ci(db: Session, user_id: int):
+    return db.query(models.Usuario).filter(models.Usuario.cedula_identidad == user_id).first()
 
 def update_user(db: Session, user_id: int, user: schemas.UserUpdate):
-    db_user = get_user_by_id(db, user_id)
+    db_user = get_user_by_ci(db, user_id)
     if db_user is None:
         return None
     for key, value in user.dict().items():
@@ -46,7 +48,7 @@ def update_user(db: Session, user_id: int, user: schemas.UserUpdate):
     return db_user
 
 def delete_user(db: Session, user_id: int):
-    db_user = get_user_by_id(db, user_id)
+    db_user = get_user_by_ci(db, user_id)
     if db_user is None:
         return None
     db.delete(db_user)

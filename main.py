@@ -7,7 +7,7 @@ from sqlApp.database import SessionLocal, engine
 from starlette.responses import RedirectResponse, HTMLResponse
 from starlette.status import HTTP_303_SEE_OTHER
 from fastapi import Depends
-
+from datetime import datetime
 
 # Crear todas las tablas en la base de datos
 models.Base.metadata.create_all(bind=engine)
@@ -31,7 +31,7 @@ def get_db():
         db.close()
 
 
-        
+  
 @app.post("/usuario", response_model=schemas.User)
 def create_usuario(user: schemas.UserCreate, db: Session = Depends(get_db)):
     print("Usuario: ", user)
@@ -40,6 +40,34 @@ def create_usuario(user: schemas.UserCreate, db: Session = Depends(get_db)):
     if db_user: 
         raise HTTPException(status_code=400, detail="Email already registered")
     return crud.create_user(db=db, user=user)
+
+
+
+        
+
+"""
+@app.post("/usuario/", response_model=schemas.User)
+def create_usuario(usuario: schemas.UserCreate, db: Session = Depends(get_db)):
+    # Force the user type to "Cliente"
+    usuario_dict = usuario.dict()
+    usuario_dict['tipo_usuario'] = "Cliente"
+    usuario_con_cliente = schemas.UserCreate(**usuario_dict)
+    
+    # Check if the email or cedula already exists
+    db_usuario = crud.get_user_by_email(db, correo_electronico=usuario.correo_electronico)
+    if db_usuario:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    db_usuario = crud.get_user_by_ci(db, cedula_identidad=usuario.cedula_identidad)
+    if db_usuario:
+        raise HTTPException(status_code=400, detail="Cedula already registered")
+    
+    return crud.create_user(db=db, usuario=usuario_con_cliente)
+
+"""
+
+
+
 
 @app.get("/usuario/create/", response_class=HTMLResponse)
 async def create_usuario_form(request: Request):
@@ -58,6 +86,8 @@ async def read_usuario(request: Request, item_id: int, db: Session = Depends(get
     if item is None:
         raise HTTPException(status_code=404, detail="User not found")
     return templates.TemplateResponse("perfilUsuario.html", {"request": request, "item": item})
+
+
 
 
 @app.get("/usuario/update/{user_id}/", response_class=HTMLResponse)
