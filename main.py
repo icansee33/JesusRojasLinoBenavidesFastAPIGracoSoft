@@ -32,9 +32,7 @@ def get_db():
 
 
         
-"""
-
-@app.post("/usuario/create", response_model=schemas.User)
+@app.post("/usuario", response_model=schemas.User)
 def create_usuario(user: schemas.UserCreate, db: Session = Depends(get_db)):
     print("Usuario: ", user)
     db_user = crud.get_user_by_email(db, email=user.email)
@@ -45,39 +43,32 @@ def create_usuario(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
 
 
-@app.get("/user/{item_id}", response_class=HTMLResponse)
+@app.get("/user/{user_id}", response_class=HTMLResponse)
 async def read_usuario(request: Request, item_id: int, db: Session = Depends(get_db)):
     item = crud.get_user_by_id(db, item_id)
     if item is None:
-        raise HTTPException(status_code=404, detail="Item not found")
-    return templates.TemplateResponse("item_detail.html", {"request": request, "item": item})
+        raise HTTPException(status_code=404, detail="User not found")
+    return templates.TemplateResponse("perfilUsuario.html", {"request": request, "item": item})
 
-@app.get("/item/create/", response_class=HTMLResponse)
-async def create_item_form(request: Request):
-    return templates.TemplateResponse("item_create.html", {"request": request})
+@app.get("/usario/create/", response_class=HTMLResponse)
+async def create_usuario_form(request: Request):
+    return templates.TemplateResponse("agregarUsuario.html.jinja", {"request": request})
 
-@app.post("/item/create/", response_class=HTMLResponse)
-async def create_item(request: Request, name: str = Form(...), description: str = Form(...), db: Session = Depends(get_db)):
-    item = schemas.ItemCreate(name=name, description=description)
-    crud.create_item(db=db, item=item)
-    return RedirectResponse("/", status_code=HTTP_303_SEE_OTHER)
-
-@app.get("/item/edit/{item_id}/", response_class=HTMLResponse)
-async def edit_item_form(request: Request, item_id: int, db: Session = Depends(get_db)):
+@app.get("/usuario/update/{user_id}/", response_class=HTMLResponse)
+async def update_usuario_form(request: Request, item_id: int, db: Session = Depends(get_db)):
     item = crud.get_item(db, item_id)
     if item is None:
-        raise HTTPException(status_code=404, detail="Item not found")
-    return templates.TemplateResponse("item_edit.html", {"request": request, "item": item})
+        raise HTTPException(status_code=404, detail="User not found")
+    return templates.TemplateResponse("modificarUsuario.html.jinja", {"request": request, "item": item})
 
-@app.post("/item/edit/{item_id}/", response_class=HTMLResponse)
-async def edit_item(request: Request, item_id: int, name: str = Form(...), description: str = Form(...), db: Session = Depends(get_db)):
-    item_update = schemas.ItemUpdate(name=name, description=description)
-    crud.update_item(db=db, item_id=item_id, item=item_update)
+@app.post("/usuario/update/{user_id}/", response_class=HTMLResponse)
+async def update_item(request: Request, item_id: int, name: str = Form(...), description: str = Form(...), db: Session = Depends(get_db)):
+    usuario_update = schemas.UserUpdate(name=name, description=description)
+    crud.update_item(db=db, item_id=item_id, item=usuario_update)
     return RedirectResponse("/", status_code=HTTP_303_SEE_OTHER)
 
-@app.post("/item/delete/{item_id}", response_class=HTMLResponse)
-async def delete_item(request: Request, item_id: int, db: Session = Depends(get_db)):
+@app.post("/usuario/delete/{user_id}", response_class=HTMLResponse)
+async def delete_usuario(request: Request, item_id: int, db: Session = Depends(get_db)):
     crud.delete_item(db=db, item_id=item_id)
     return RedirectResponse("/", status_code=HTTP_303_SEE_OTHER)
 
-"""
