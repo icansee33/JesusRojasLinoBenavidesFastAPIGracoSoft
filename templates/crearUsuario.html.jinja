@@ -4,7 +4,7 @@
 
 <h1 class="titulo"> {% block title %} Únete a nuestra familia {% endblock %}</h1>
 
-<form action="{{ url_for('create_usuario') }}" method="post">
+<form action="{{ url_for('create_usuario_post') }}" method="post">
     
     <div>
         <label for="nombre">Nombre: </label><br>
@@ -42,7 +42,7 @@
         <br>
     </div>
     <div>
-        <input type="hidden" name="tipo_usuario" value="Cliente">
+        <input type="hidden" name="tipo_usuario" value="Submit">
     </div>
     <input type="submit" value="Submit">
 </form>

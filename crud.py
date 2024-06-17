@@ -10,7 +10,7 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 def create_user(db: Session, user: schemas.UserCreate):
-    db_user = models.User(
+    db_user = models.Usuario(
         nombre=user.nombre,
         apellido=user.apellido,
         cedula_identidad=user.cedula_identidad,
@@ -28,6 +28,7 @@ def create_user(db: Session, user: schemas.UserCreate):
 
 
 def get_user_by_email(db: Session, email: str):
+    print("Get email: ", email)
     return db.query(models.Usuario).filter(models.Usuario.correo_electronico == email).first()
 
 def get_user_by_ci(db: Session, user_id: int):
