@@ -1,15 +1,17 @@
 from fastapi import Depends, FastAPI, Request, HTTPException, Form
+from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 import crud, models, schemas
+from seguridad.manejarToken import ACCESS_TOKEN_EXPIRE_MINUTES, authenticate_user, create_access_token
 from sqlApp.database import SessionLocal, engine
 from starlette.responses import RedirectResponse, HTMLResponse
 from starlette.status import HTTP_303_SEE_OTHER
 from fastapi import Depends
 
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Crear todas las tablas en la base de datos
 models.Base.metadata.create_all(bind=engine)
@@ -35,7 +37,8 @@ def get_db():
 
   
 @app.post("/usuario/create/", response_model=schemas.UserBase)
-async def create_usuario_post(request: Request, cedula_identidad: str = Form(...), 
+async def create_usuario_post(request: Request, 
+                        cedula_identidad: str = Form(...), 
                         nombre: str = Form(...), 
                         apellido: str = Form(...), 
                         fecha_nacimiento: str = Form(...), 
@@ -79,7 +82,7 @@ async def home_no_iniciado(request: Request, db: Session = Depends(get_db)):
 
 @app.get("/user/{user_id}", response_class=HTMLResponse)
 async def read_usuario(request: Request, item_id: int, db: Session = Depends(get_db)):
-    item = crud.get_user_by_id(db, item_id)
+    item = crud.get_user_by_ci(db, item_id)
     if item is None:
         raise HTTPException(status_code=404, detail="User not found")
     return templates.TemplateResponse("perfilUsuario.html", {"request": request, "item": item})
@@ -87,7 +90,7 @@ async def read_usuario(request: Request, item_id: int, db: Session = Depends(get
 
 @app.get("/usuario/update/{user_id}/", response_class=HTMLResponse)
 async def update_usuario_form(request: Request, item_id: int, db: Session = Depends(get_db)):
-    item = crud.get_item(db, item_id)
+    item = crud.get_user_by_ci(db, item_id)
     if item is None:
         raise HTTPException(status_code=404, detail="User not found")
     return templates.TemplateResponse("modificarUsuario.html.jinja", {"request": request, "item": item})
@@ -95,15 +98,35 @@ async def update_usuario_form(request: Request, item_id: int, db: Session = Depe
 @app.post("/usuario/update/{user_id}/", response_class=HTMLResponse)
 async def update_item(request: Request, item_id: int, name: str = Form(...), description: str = Form(...), db: Session = Depends(get_db)):
     usuario_update = schemas.UserUpdate(name=name, description=description)
-    crud.update_item(db=db, item_id=item_id, item=usuario_update)
+    crud.update_user(db=db, item_id=item_id, item=usuario_update)
     return RedirectResponse("/", status_code=HTTP_303_SEE_OTHER)
 
 @app.post("/usuario/delete/{user_id}", response_class=HTMLResponse)
 async def delete_usuario(request: Request, item_id: int, db: Session = Depends(get_db)):
-    crud.delete_item(db=db, item_id=item_id)
+    crud.delete_user(db=db, item_id=item_id)
     return RedirectResponse("/", status_code=HTTP_303_SEE_OTHER)
 
 # Iniciar sesión
-@app.get("/iniciarsesion", response_class=HTMLResponse)
-async def iniciar_sesion(request: Request, db: Session = Depends(get_db)):
+@app.get("/iniciarsesion/", response_class=HTMLResponse)
+async def iniciar_sesion_template(request: Request):
     return templates.TemplateResponse("iniciarSesion.html.jinja", {"request": request})
+
+@app.post("/iniciarsesion/", response_class=HTMLResponse)
+async def iniciar_sesion_post(
+    request: Request,
+    correo_electronico: str = Form(...), 
+    contrasena: str = Form(...), 
+    db: Session = Depends(get_db),
+    
+):
+    user = authenticate_user(db, correo_electronico, contrasena)
+    if not user:
+        raise HTTPException(
+            status_code=400,
+            detail="Incorrect username or password",
+        )
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.correo_electronico}, expires_delta=access_token_expires
+    )
+    return templates.TemplateResponse("crearUsuario.html.jinja", {"request": request, "token": access_token, "user": user})

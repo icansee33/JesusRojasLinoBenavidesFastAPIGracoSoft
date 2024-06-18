@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from sqlApp.database import SessionLocal, engine
+from sqlApp.database import Base, SessionLocal, engine
 from models import Usuario
 
 app = FastAPI()
