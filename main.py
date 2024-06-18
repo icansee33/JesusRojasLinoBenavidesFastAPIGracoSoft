@@ -62,40 +62,13 @@ async def create_usuario_post(request: Request, cedula_identidad: str = Form(...
         raise HTTPException(status_code=400, detail="CI already registered")
     print("Hasta acá va bien")
     crud.create_user(db=db, user=user)
-    return templates.TemplateResponse("crearUsuario.html.jinja", {"request": request})
+    return templates.TemplateResponse("homeNoIniciado.html.jinja", {"request": request})
 
 
 @app.get("/usuario/create/", response_class=HTMLResponse)
 async def create_usuario_template(request: Request):
     print("Usuario get: ", )
     return templates.TemplateResponse("crearUsuario.html.jinja", {"request": request})
-
-
-
-        
-
-"""
-@app.post("/usuario/", response_model=schemas.User)
-def create_usuario(usuario: schemas.UserCreate, db: Session = Depends(get_db)):
-    # Force the user type to "Cliente"
-    usuario_dict = usuario.dict()
-    usuario_dict['tipo_usuario'] = "Cliente"
-    usuario_con_cliente = schemas.UserCreate(**usuario_dict)
-    
-    # Check if the email or cedula already exists
-    db_usuario = crud.get_user_by_email(db, correo_electronico=usuario.correo_electronico)
-    if db_usuario:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    
-    db_usuario = crud.get_user_by_ci(db, cedula_identidad=usuario.cedula_identidad)
-    if db_usuario:
-        raise HTTPException(status_code=400, detail="Cedula already registered")
-    
-    return crud.create_user(db=db, usuario=usuario_con_cliente)
-
-"""
-
-
 
 
 
