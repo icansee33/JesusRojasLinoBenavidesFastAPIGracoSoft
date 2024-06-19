@@ -24,6 +24,7 @@ class User(UserBase):
     class Config:
         orm_mode = True
 
+#producto
 class ProductBase(BaseModel):
     id_artesano: int
     id_tipo: str
@@ -46,7 +47,7 @@ class Product(ProductBase):
     class Config:
         orm_mode = True
 
-
+#Reseñas
 class ReviewBase(BaseModel):
     id_usuario: int
     id_producto: int
