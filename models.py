@@ -2,6 +2,7 @@ from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Date, Doubl
 from sqlalchemy.orm import relationship
 from sqlApp.database import Base
 
+#Hello
 class Usuario(Base):
     __tablename__ = 'usuarios'
     cedula_identidad = Column(Integer, primary_key=True)
