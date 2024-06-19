@@ -1,8 +1,8 @@
 """init
 
-Revision ID: d8b6d3271787
+Revision ID: 0e1d3838409f
 Revises: 
-Create Date: 2024-06-17 10:49:00.391437
+Create Date: 2024-06-19 11:30:54.643843
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'd8b6d3271787'
+revision: str = '0e1d3838409f'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -23,6 +23,11 @@ def upgrade() -> None:
     op.create_table('roles',
     sa.Column('nombre', sa.String(length=50), nullable=False),
     sa.PrimaryKeyConstraint('nombre')
+    )
+    op.create_table('tipo_producto',
+    sa.Column('id_tipo', sa.Integer(), nullable=False),
+    sa.Column('nombre', sa.String(length=100), nullable=False),
+    sa.PrimaryKeyConstraint('id_tipo')
     )
     op.create_table('usuarios',
     sa.Column('cedula_identidad', sa.Integer(), nullable=False),
@@ -50,14 +55,15 @@ def upgrade() -> None:
     op.create_table('productos',
     sa.Column('id_producto', sa.Integer(), nullable=False),
     sa.Column('id_artesano', sa.Integer(), nullable=False),
+    sa.Column('id_tipo', sa.Integer(), nullable=False),
     sa.Column('nombre', sa.String(length=100), nullable=False),
     sa.Column('descripcion', sa.String(), nullable=False),
     sa.Column('categoria', sa.String(length=50), nullable=False),
-    sa.Column('tipo', sa.String(length=50), nullable=False),
     sa.Column('dimensiones', sa.String(length=50), nullable=False),
     sa.Column('peso', sa.Double(precision=10, asdecimal=2), nullable=False),
     sa.Column('imagen', sa.String(length=255), nullable=False),
     sa.ForeignKeyConstraint(['id_artesano'], ['usuarios.cedula_identidad'], ),
+    sa.ForeignKeyConstraint(['id_tipo'], ['tipo_producto.id_tipo'], ),
     sa.PrimaryKeyConstraint('id_producto')
     )
     op.create_table('calificaciones',
@@ -105,7 +111,7 @@ def upgrade() -> None:
     op.create_table('resenas',
     sa.Column('id_resena', sa.Integer(), nullable=False),
     sa.Column('id_producto', sa.Integer(), nullable=False),
-    sa.Column('fecha_inversion', sa.Date(), nullable=False),
+    sa.Column('fecha_invencion', sa.Date(), nullable=False),
     sa.Column('creador', sa.String(length=100), nullable=False),
     sa.Column('anios_produccion', sa.Integer(), nullable=False),
     sa.Column('anecdotas', sa.String(), nullable=True),
@@ -125,5 +131,6 @@ def downgrade() -> None:
     op.drop_table('productos')
     op.drop_table('pedidos')
     op.drop_table('usuarios')
+    op.drop_table('tipo_producto')
     op.drop_table('roles')
     # ### end Alembic commands ###

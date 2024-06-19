@@ -19,18 +19,29 @@ class Usuario(Base):
     encargos = relationship("Encargo", back_populates="cliente")
     calificaciones = relationship("Calificacion", back_populates="cliente")
 
+
+
+class Tipo_Producto(Base):
+    __tablename__ = 'tipo_producto'
+    id_tipo = Column(Integer, primary_key=True)
+    nombre = Column(String(100), nullable=False)
+
+    tipos = relationship("Producto", back_populates="tipo")
+
+
 class Producto(Base):
     __tablename__ = 'productos'
     id_producto = Column(Integer, primary_key=True)
     id_artesano = Column(Integer, ForeignKey('usuarios.cedula_identidad'), nullable=False)
+    id_tipo = Column(Integer, ForeignKey('tipo_producto.id_tipo'), nullable=False)
     nombre = Column(String(100), nullable=False)
     descripcion = Column(String, nullable=False)
     categoria = Column(String(50), nullable=False)
-    tipo = Column(String(50), nullable=False)
     dimensiones = Column(String(50), nullable=False)
     peso = Column(Double(10, 2), nullable=False)
     imagen = Column(String(255), nullable=False)
 
+    tipo = relationship("Tipo_Producto", back_populates="tipos")
     artesano = relationship("Usuario", back_populates="productos")
     resenas = relationship("Resena", back_populates="producto")
     encargos = relationship("Encargo", back_populates="producto")
@@ -38,11 +49,13 @@ class Producto(Base):
     calificaciones = relationship("Calificacion", back_populates="producto")
     pedidos = relationship("PedidoProducto", back_populates="producto")
 
+
+
 class Resena(Base):
     __tablename__ = 'resenas'
     id_resena = Column(Integer, primary_key=True)
     id_producto = Column(Integer, ForeignKey('productos.id_producto'), nullable=False)
-    fecha_inversion = Column(Date, nullable=False)
+    fecha_invencion = Column(Date, nullable=False)
     creador = Column(String(100), nullable=False)
     anios_produccion = Column(Integer, nullable=False)
     anecdotas = Column(String, nullable=True)

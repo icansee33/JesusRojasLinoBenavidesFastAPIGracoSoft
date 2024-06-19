@@ -26,10 +26,10 @@ class User(UserBase):
 
 class ProductBase(BaseModel):
     id_artesano: int
+    id_tipo: str
     nombre: str
     descripcion: str
     categoria: str
-    tipo: str
     dimensiones: str
     peso: float
     imagen: str
@@ -64,4 +64,5 @@ class Review(ReviewBase):
 
     class Config:
         orm_mode = True
+
 

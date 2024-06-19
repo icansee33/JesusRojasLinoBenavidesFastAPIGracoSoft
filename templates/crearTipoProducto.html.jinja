@@ -1,0 +1,23 @@
+{% extends 'headerCRUD.html.jinja' %}
+
+{% block content %}
+
+<h1 class="titulo"> {% block title %} Únete a nuestra familia {% endblock %}</h1>
+
+<form action="{{ url_for('') }}" method="post">
+    
+    <div>
+        <input type="hidden" class="form-control" name="id_tipo" placeholder="id_tipo" required>
+        <br>
+    </div>
+
+    <div>
+        <label for="nombre">Nombre: </label><br>
+        <input type="text" class="form-control" name="nombre" placeholder="nombre" required>
+        <br>
+    </div>
+
+    <input type="submit" value="Submit">
+</form>
+
+{% endblock %}
