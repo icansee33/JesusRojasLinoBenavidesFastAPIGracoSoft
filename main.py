@@ -1,14 +1,17 @@
-from fastapi import Depends, FastAPI, Request, HTTPException, Form
+from fastapi import Depends, FastAPI, File, Request, HTTPException, Form, UploadFile
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
-import crudUsuario, models, schemas
+import crudUsuario, models, schemas, crudProducto
 from seguridad.manejarToken import ACCESS_TOKEN_EXPIRE_MINUTES, authenticate_user, create_access_token
 from sqlApp.database import SessionLocal, engine
 from starlette.responses import RedirectResponse, HTMLResponse
 from starlette.status import HTTP_303_SEE_OTHER
 from fastapi import Depends
+import shutil
+import os
+import uuid
 
 
 from datetime import datetime, timedelta
@@ -119,6 +122,8 @@ async def iniciar_sesion_post(
     db: Session = Depends(get_db),
     
 ):
+    
+    #hola mundo 
     user = authenticate_user(db, correo_electronico, contrasena)
     if not user:
         raise HTTPException(
@@ -130,3 +135,54 @@ async def iniciar_sesion_post(
         data={"sub": user.correo_electronico}, expires_delta=access_token_expires
     )
     return templates.TemplateResponse("crearUsuario.html.jinja", {"request": request, "token": access_token, "user": user})
+
+#Codigo de imagen de producto
+
+UPLOAD_DIR = "static/images/"
+if not os.path.exists(UPLOAD_DIR):
+    os.makedirs(UPLOAD_DIR)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+def save_upload_file(upload_file: UploadFile, upload_dir: str):
+    filename, file_extension = os.path.splitext(upload_file.filename)
+    unique_filename = f"{filename}_{uuid.uuid4().hex}{file_extension}"
+    file_path = os.path.join(upload_dir, unique_filename)
+
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(upload_file.file, buffer)
+
+    return file_path
+
+@app.post("/item/create/", response_class=HTMLResponse)
+async def create_item(
+    request: Request,
+    nombre: str = Form(...),
+    descripcion: str = Form(...),
+    categoria: str = Form(...),
+    tipo: str = Form(...),
+    dimensiones: str = Form(...),
+    peso: float = Form(...),
+    imagen: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    artesano_id = 1 
+    image_path = save_upload_file(imagen, UPLOAD_DIR)
+
+    item = schemas.ProductCreate(
+        nombre=nombre,
+        descripcion=descripcion,
+        categoria=categoria,
+        tipo=tipo,
+        dimensiones=dimensiones,
+        peso=peso,
+        imagen=image_path 
+    )
+    crudProducto.create_product(db=db, item=item, artesano_id=artesano_id)
+    return RedirectResponse("/", status_code=HTTP_303_SEE_OTHER)
+
