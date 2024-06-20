@@ -69,6 +69,7 @@ class Review(ReviewBase):
         orm_mode = True
 
 
+
 #Tipo
 class TipoUserBase(BaseModel):
     nombre: str
@@ -83,3 +84,4 @@ class  TipoUser(TipoUserBase):
 
     class Config:
         orm_mode = True
+
