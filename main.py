@@ -95,6 +95,7 @@ async def update_usuario_form(request: Request, item_id: int, db: Session = Depe
         raise HTTPException(status_code=404, detail="User not found")
     return templates.TemplateResponse("modificarUsuario.html.jinja", {"request": request, "item": item})
 
+"""
 @app.post("/usuario/update/{user_id}/", response_class=HTMLResponse)
 async def update_item(request: Request, item_id: int, name: str = Form(...), description: str = Form(...), db: Session = Depends(get_db)):
     usuario_update = schemas.UserUpdate(name=name, description=description)
@@ -105,6 +106,9 @@ async def update_item(request: Request, item_id: int, name: str = Form(...), des
 async def delete_usuario(request: Request, item_id: int, db: Session = Depends(get_db)):
     crudUsuario.delete_user(db=db, item_id=item_id)
     return RedirectResponse("/", status_code=HTTP_303_SEE_OTHER)
+
+"""
+
 
 # Iniciar sesión
 @app.get("/iniciarsesion/", response_class=HTMLResponse)
@@ -134,7 +138,7 @@ async def iniciar_sesion_post(
 
 #Producto
 @app.post("/producto/create/", response_model=schemas.ProductBase,)
-async def create_product_post(current_user: Annotated[schemas.UserBase, Depends(get_current_user) ],
+async def create_product_post(#current_user: Annotated[schemas.UserBase, Depends(get_current_user) ],
                         request: Request, 
                         id_producto: str = Form(...), 
                         id_artesano: str = Form(...), 
@@ -171,7 +175,7 @@ async def create_product_template(request: Request):
  
 #Resenas
 @app.post("/resena/create", response_model=schemas.ReviewCreate)
-async def create_resew_post(current_user: Annotated[schemas.ReviewBase, Depends(get_current_user)],
+async def create_resew_post(#current_user: Annotated[schemas.ReviewBase, Depends(get_current_user)],
                         request: Request, 
                         id_resena: str = Form(...), 
                         id_producto: str= Form(...),
