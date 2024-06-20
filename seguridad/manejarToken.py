@@ -60,6 +60,8 @@ def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None
 def get_user(db: Session, username: str):
     return db.query(Usuario).filter(Usuario.correo_electronico == username).first()
 
+
+
 def authenticate_user(db: Session, username: str, password: str):
     user = get_user(db, username)
     if not user:

@@ -26,8 +26,9 @@ class User(UserBase):
 
 #producto
 class ProductBase(BaseModel):
+    id_producto: int
     id_artesano: int
-    id_tipo: str
+    id_tipo: int
     nombre: str
     descripcion: str
     categoria: str
@@ -49,6 +50,7 @@ class Product(ProductBase):
 
 #Reseñas
 class ReviewBase(BaseModel):
+    id_resena:int
     id_usuario: int
     id_producto: int
     calificacion: int
@@ -67,4 +69,19 @@ class Review(ReviewBase):
         orm_mode = True
 
 
-###
+
+#Tipo
+class TipoUserBase(BaseModel):
+    nombre: str
+    id_tipo: str
+ 
+
+class TipoCreate(TipoUserBase):
+   pass
+
+class  TipoUser(TipoUserBase):
+    id_usuario: int
+
+    class Config:
+        orm_mode = True
+

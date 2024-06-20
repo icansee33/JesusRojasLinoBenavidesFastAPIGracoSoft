@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from . import models, schemas
+import models, schemas
 
 def create_product(db: Session, product: schemas.ProductCreate):
     db_product = models.Producto(
