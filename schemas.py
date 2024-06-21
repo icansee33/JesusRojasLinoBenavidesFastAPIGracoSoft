@@ -71,20 +71,21 @@ class Review(ReviewBase):
 
 
 #Tipo
-class TipoUserBase(BaseModel):
+
+
+class TypeProductBase(BaseModel):
     nombre: str
-    id_tipo: str
- 
 
-class TipoCreate(TipoUserBase):
-   pass
+class TypeCreate(TypeProductBase):
+    id_tipo: int
 
-class TipoUpdate(TipoUserBase):
-   pass
+class TypeUpdate(BaseModel):
+    nombre: str
 
-class  TipoUser(TipoUserBase):
-    id_usuario: int
+class TypeProduct(TypeProductBase):
+    id_tipo: int
 
     class Config:
         orm_mode = True
+
 
