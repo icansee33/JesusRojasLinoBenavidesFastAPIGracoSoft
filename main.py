@@ -95,7 +95,7 @@ async def update_usuario_form(request: Request, item_id: int, db: Session = Depe
         raise HTTPException(status_code=404, detail="User not found")
     return templates.TemplateResponse("modificarUsuario.html.jinja", {"request": request, "item": item})
 
-"""
+
 @app.post("/usuario/update/{user_id}/", response_class=HTMLResponse)
 async def update_item(request: Request, item_id: int, name: str = Form(...), description: str = Form(...), db: Session = Depends(get_db)):
     usuario_update = schemas.UserUpdate(name=name, description=description)
@@ -107,7 +107,7 @@ async def delete_usuario(request: Request, item_id: int, db: Session = Depends(g
     crudUsuario.delete_user(db=db, item_id=item_id)
     return RedirectResponse("/", status_code=HTTP_303_SEE_OTHER)
 
-"""
+
 
 
 # Iniciar sesión
@@ -172,6 +172,23 @@ async def create_product_post(#current_user: Annotated[schemas.UserBase, Depends
 async def create_product_template(request: Request):
     return templates.TemplateResponse("crearProducto.html.jinja", {"request": request})
 
+@app.post("/producto/update/{product_id}/", response_class=HTMLResponse)
+async def update_producto(request: Request, product_id: int, 
+                          nombre: str = Form(...), descripcion: str = Form(...), 
+                          categoria: str = Form(...), dimensiones: str = Form(...), 
+                          peso: str = Form(...), id_tipo: str = Form(...), db: Session = Depends(get_db)):
+    product_update = schemas.ProductUpdate(
+        nombre=nombre, descripcion=descripcion, categoria=categoria,
+        dimensiones=dimensiones, peso=peso, id_tipo=id_tipo
+    )
+    crudProducto.update_product(db=db, product_id=product_id, product=product_update)
+    return RedirectResponse("/", status_code=HTTP_303_SEE_OTHER)
+
+@app.post("/producto/delete/{product_id}/", response_class=HTMLResponse)
+async def delete_producto(request: Request, product_id: int, db: Session = Depends(get_db)):
+    crudProducto.delete_product(db=db, product_id=product_id)
+    return RedirectResponse("/", status_code=HTTP_303_SEE_OTHER)
+
  
 #Resenas
 @app.post("/resena/create", response_model=schemas.ReviewCreate)
@@ -204,7 +221,6 @@ async def create_resew_post(#current_user: Annotated[schemas.ReviewBase, Depends
     return templates.TemplateResponse("homeNoIniciado.html.jinja", {"request": request})
 
 
-
 @app.get("/resena/create/", response_class=HTMLResponse)
 async def create_resena_template(request: Request):
     return templates.TemplateResponse("crearResena.html.jinja", {"request": request})
@@ -212,7 +228,7 @@ async def create_resena_template(request: Request):
 
 #Tipo Producto
 @app.post("/type_product/create", response_model=schemas.TipoUserBase)
-async def create_type_product_post(current_user: Annotated[schemas.UserBase, Depends(get_current_user)],
+async def create_tipo_producto_post(current_user: Annotated[schemas.UserBase, Depends(get_current_user)],
                         request: Request, 
                         nombre: str = Form(...), 
                         id_tipo: str= Form(...),
@@ -232,6 +248,16 @@ async def create_type_product_post(current_user: Annotated[schemas.UserBase, Dep
     crudTipoProducto.create_type_product(db=db, type_product=type_product)
     return templates.TemplateResponse("homeNoIniciado.html.jinja", {"request": request})
 
+@app.post("/tipo_producto/update/{id_tipo}/", response_class=HTMLResponse)
+async def update_tipo_producto(request: Request, id_tipo: int, 
+                               nombre: str = Form(...), db: Session = Depends(get_db)):
+    type_update = schemas.TipoUpdate(nombre=nombre)
+    crudTipoProducto.update_type_product(db=db, id_tipo=id_tipo, type=type_update)
+    return RedirectResponse("/", status_code=HTTP_303_SEE_OTHER)
 
+@app.post("/tipo_producto/delete/{id_tipo}/", response_class=HTMLResponse)
+async def delete_tipo_producto(request: Request, id_tipo: int, db: Session = Depends(get_db)):
+    crudTipoProducto.delete_type_product(db=db, id_tipo=id_tipo)
+    return RedirectResponse("/", status_code=HTTP_303_SEE_OTHER)
 
 
