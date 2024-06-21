@@ -14,8 +14,6 @@ from typing import Annotated, Union
 import shutil
 import os
 import uuid
-
-
 from datetime import datetime, timedelta
 
 # Crear todas las tablas en la base de datos

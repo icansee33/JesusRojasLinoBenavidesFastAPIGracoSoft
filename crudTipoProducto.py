@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 import models, schemas
-
+#
 def create_type_product(db: Session, product: schemas.TipoCreate):
     db_type = models.Tipo_Producto(
         nombre=product.nombre
