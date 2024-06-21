@@ -79,6 +79,9 @@ class TipoUserBase(BaseModel):
 class TipoCreate(TipoUserBase):
    pass
 
+class TipoUpdate(TipoUserBase):
+   pass
+
 class  TipoUser(TipoUserBase):
     id_usuario: int
 
