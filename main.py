@@ -251,43 +251,67 @@ async def delete_resena(request: Request, resena_id: int, db: Session = Depends(
 
 #Tipo Producto
 @app.post("/type_product/create/", response_model=schemas.TypeProductBase)
-async def create_tipo_producto_post(#current_user: Annotated[schemas.UserBase, Depends(get_current_user)],
-                        request: Request, 
-                        nombre: str = Form(...), 
-                        db: Session = Depends(get_db)):
+async def create_tipo_producto_post(request: Request, nombre: str = Form(...), db: Session = Depends(get_db)):
     print("Tipo Product: ", nombre)
-    type_product = schemas.TypeCreate(
-                              nombre=nombre, 
-                            )
-    
-    '''db_user = crudTipoProducto.get_type_by_id(db, type_product)
-    print("Db user: ", db_user)
-    if db_user: 
-        raise HTTPException(status_code=400, detail="Id already registered")'''
+    type_product = schemas.TypeCreate(nombre=nombre)
     crudTipoProducto.create_type_product(db=db, type_product=type_product)
-    typesProducts = crudTipoProducto.get_types(db=db, skip=0, limit=20)
-    print('Lista tipos:' , typesProducts)
-    for n in range(0, len(typesProducts)): 
-        print("Id: ",typesProducts[n].id_tipo)
-        print("Nombre: "+typesProducts[n].nombre)
-    return templates.TemplateResponse("listaTipoProducto.html.jinja", {"request": request}, typesProducts=typesProducts)
+    types = crudTipoProducto.get_types(db)
+
+    print('Lista tipos:', types)
+    for type in types:
+        print("Id:", type.id_tipo)
+        print("Nombre:", type.nombre)
+    return templates.TemplateResponse("listaTipoProducto.html.jinja", {"request": request, "typesProducts": types})
 
 
+@app.get("/type_product/list", response_class=HTMLResponse, name="read_items")
+async def read_types(request: Request, db: Session = Depends(get_db)):
+    types = crudTipoProducto.get_types(db)
+    return templates.TemplateResponse("listaTipoProducto.html.jinja", {"request": request, "typesProducts": types})
+
+
+@app.get("/type_product/update/{type_id}/", response_class=HTMLResponse)
+async def update_tipo_producto_template(request: Request, type_id: int, db: Session = Depends(get_db)):
+    type_product = crudTipoProducto.get_type_by_id(db, type_id)
+    return templates.TemplateResponse("modificarTipoProducto.html.jinja", {"request": request, "type_product": type_product})
+
+
+# Ruta para obtener la plantilla de modificación
+@app.get("/type_product/update/{type_id}/", response_class=HTMLResponse)
+async def update_tipo_producto_template(request: Request, type_id: int, db: Session = Depends(get_db)):
+    type_product = crudTipoProducto.get_type_by_id(db, type_id)
+    return templates.TemplateResponse("modificarTipoProducto.html.jinja", {"request": request, "type_product": type_product})
+
+# Ruta para manejar el POST de actualización
 @app.post("/type_product/update/{type_id}/", response_class=HTMLResponse)
-async def update_tipo_producto(
+async def update_tipo_producto_post(
     request: Request, 
-    id_producto: int,  
+    type_id: int,  
     nombre: str = Form(...), 
     db: Session = Depends(get_db)
 ):
-    type_update = schemas.TypeUpdate(id_tipo=id_producto, nombre=nombre)
-    crudTipoProducto.update_type_product(db=db, type_id=id_producto, type=type_update)
-    return templates.TemplateResponse("listaTipoProducto.html.jinja", {"request": request})
+    type_update = schemas.TypeUpdate(id_tipo=type_id, nombre=nombre)
+    crudTipoProducto.update_type_product(db=db, type_id=type_id, type=type_update)
+    types = crudTipoProducto.get_types(db)
+# Ruta para obtener la plantilla de modificación
+@app.get("/type_product/update/{type_id}/", response_class=HTMLResponse)
+async def update_tipo_producto_template(request: Request, type_id: int, db: Session = Depends(get_db)):
+    type_product = crudTipoProducto.get_type_by_id(db, type_id)
+    return templates.TemplateResponse("modificarTipoProducto.html.jinja", {"request": request, "type_product": type_product})
 
-@app.post("/type_product/delete/{type_id}/", response_class=HTMLResponse)
-async def delete_tipo_producto(request: Request, id_tipo: int, db: Session = Depends(get_db)):
-    crudTipoProducto.delete_type_product(db=db, id_tipo=id_tipo)
-    return RedirectResponse("listaTipoProducto.html.jinja", status_code=HTTP_303_SEE_OTHER)
+# Ruta para manejar el POST de actualización
+@app.post("/type_product/update/{type_id}/", response_class=HTMLResponse)
+async def update_tipo_producto_post(
+    request: Request, 
+    id_tipo: int,  
+    nombre: str = Form(...), 
+    db: Session = Depends(get_db)
+):
+    type_update = schemas.TypeUpdate(type_id=id_tipo, nombre=nombre)
+    crudTipoProducto.update_type_product(db=db, type_id=id_tipo, type=type_update)
+    types = crudTipoProducto.get_types(db)
+    return templates.TemplateResponse("listaTipoProducto.html.jinja", {"request": request, "typesProducts": types})
+
 
 @app.get("/type_product/create/", response_class=HTMLResponse)
 async def create_tipo_producto_template(request: Request):
