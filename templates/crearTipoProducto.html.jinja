@@ -2,28 +2,16 @@
 
 {% block content %}
 
-<h1 class="titulo"> {% block title %} Únete a nuestra familia {% endblock %}</h1>
+<h1 class="titulo"> {% block title %}Tipo de producto {% endblock %}</h1>
 
-<form action="{{ url_for('update_tipo_producto', id_type=type_update.id_tipo) }}" method="post">
-    
-    <div>
-        <input type="hidden" class="form-control" name="id_tipo" placeholder="id_tipo" required>
-        <br>
-    </div>
+<form action="{{ url_for('create_tipo_producto_post') }}" method="post">
 
     <div>
         <label for="nombre">Nombre: </label><br>
         <input type="text" class="form-control" name="nombre" placeholder="nombre" required>
         <br>
     </div>
-
     <input type="submit" value="Submit">
-    
-    <form action="{{ url_for('update_tipo_producto', id_type=type_update.id_tipo) }}" method="post">
-        <input class="css" type="submit" value="Modificar">
-    </form>
-
-
 </form>
 
 {% endblock %}

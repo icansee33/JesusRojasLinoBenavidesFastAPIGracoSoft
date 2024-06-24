@@ -1,9 +1,8 @@
 from sqlalchemy.orm import Session
 import models, schemas
-#
+
 def create_type_product(db: Session, type_product: schemas.TypeCreate):
     db_type = models.Tipo_Producto(
-        id_tipo=type_product.id_tipo,
         nombre=type_product.nombre
     )
     db.add(db_type)
@@ -32,3 +31,6 @@ def delete_type_product(db: Session, type_id: int):
     db.delete(db_type)
     db.commit()
     return db_type
+
+def get_types(db: Session, skip: int = 10, limit: int = 100):
+    return db.query(models.Tipo_Producto).offset(skip).limit(limit).all()
