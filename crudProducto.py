@@ -38,3 +38,6 @@ def delete_product(db: Session, product_id: int):
     db.delete(db_product)
     db.commit()
     return db_product
+
+def get_products(db: Session, skip: int = 10, limit: int = 100):
+    return db.query(models.Producto).offset(skip).limit(limit).all()

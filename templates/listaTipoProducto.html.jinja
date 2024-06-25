@@ -15,10 +15,12 @@
             <td>{{ type.id_tipo }}</td>
             <td>{{ type.nombre }} </td>
             <td> 
-                <button value="Modificar" onclick="window.location.href='/update_tipo_producto_post/{{type.id_tipo}}' ;" >Modificar</button> 
+                <button value="Modificar" onclick="window.location.href='/type_product/update/{{type.id_tipo}}' ;" >Modificar</button> 
 
-               
-                
+                <form action="/type_product/delete/{{ type.id_tipo }}" method="post" style="display:inline;">
+                    <input type="hidden" class="form-control" name="id_tipo"  value="{{type.id_tipo}}">
+                    <button type="submit">Delete</button>
+                </form>
             </td>
 
         </tr>
@@ -28,3 +30,6 @@
         {% endfor %}
     </table>
 {% endblock %}
+
+
+

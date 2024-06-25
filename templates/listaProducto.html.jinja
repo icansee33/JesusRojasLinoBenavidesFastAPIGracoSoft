@@ -1,0 +1,40 @@
+{% extends 'baseArtesano.html.jinja' %}
+
+{% block content %}
+<h1>{% block title %} Tipo de Productos {% endblock %}</h1>
+    
+    
+    <table id="formcenter">
+
+        <tr>
+            <th>ID de Producto</th>
+            <th>Nombre</th>
+            <th>descripcion</th>
+            <th>categoria</th>
+            <th>peso</th>
+
+        </tr>
+        {% for product in Products %}
+        <tr>
+            <td>{{ product.id_producto }}</td>
+            <td>{{ product.nombre }} </td>
+            <td>{{ product.descripcion }} </td>
+            <td>{{ product.categoria }} </td>
+            <td>{{ product.peso }} </td>
+            <td> 
+                <button value="Modificar" onclick="window.location.href='/product/update/{{product.id_producto}}' ;" >Modificar</button> 
+
+                <form action="/type_product/delete/{{ product.id_producto }}" method="post" style="display:inline;">
+                    <input type="hidden" class="form-control" name="id_producto"  value="{{product.id_producto}}">
+                    <button type="submit">Delete</button>
+                </form>
+            </td>
+
+        </tr>
+
+           
+           
+        {% endfor %}
+    </table>
+{% endblock %}
+

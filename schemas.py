@@ -26,7 +26,6 @@ class User(UserBase):
 
 #producto
 class ProductBase(BaseModel):
-    id_producto: int
     id_artesano: int
     id_tipo: int
     nombre: str
@@ -40,27 +39,29 @@ class ProductCreate(ProductBase):
     pass
 
 class ProductUpdate(ProductBase):
-    pass
+    id_producto: int
 
 class Product(ProductBase):
-    id_producto: int
 
     class Config:
         orm_mode = True
 
 #Reseñas
 class ReviewBase(BaseModel):
-    id_resena:int
     id_usuario: int
     id_producto: int
-    calificacion: int
-    comentario: str
+    fecha_invencion: date
+    anios_produccion: int
+    creador:str
+
+    anecdotas:str
+
 
 class ReviewCreate(ReviewBase):
     pass
 
 class ReviewUpdate(ReviewBase):
-    pass
+    id_resena:int
 
 class Review(ReviewBase):
     id_review: int

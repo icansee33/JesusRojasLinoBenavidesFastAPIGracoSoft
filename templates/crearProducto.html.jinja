@@ -4,7 +4,9 @@
 
 <h1 class="titulo"> {% block title %} Añadir un nuevo producto {% endblock %}</h1>
 
-<form action="{{ url_for('create_product_post') }}" method="post">
+<form action="{{ url_for('create_producto_post') }}" method="post">
+
+
     <div>
         <label for="id_artesano">Cédula del Artesano: </label><br>
         <input type="text" class="form-control" name="id_artesano" placeholder="Cédula del Artesano" required>
@@ -22,16 +24,12 @@
     </div>
     <div>
         <label for="categoria">Categorías disponibles: </label><br>
-        <select id="categoria" name="categoria" class="form-control" required>
-            {% for categoria in categorias %}
-                <option value="{{ categoria['categoria'] }}">{{ categoria['nombre'] }}</option>
-            {% endfor %}
-        </select>
+        <input type="text" class="form-control" name="categoria" placeholder="categoria" required>
         <br>
     </div>
     <div>
-        <label for="tipo">Tipo: </label><br>
-        <input type="text" class="form-control" name="tipo" placeholder="Tipo" required>
+        <label for="id_tipo">Id del Tipo: </label><br>
+        <input type="text" class="form-control" name="id_tipo" placeholder="id_tipo" required>
         <br>
     </div>
     <div>
@@ -49,13 +47,10 @@
         <input type="file" id="imagen" name="imagen"><br><br>
 
     </div>
+   
+   
     <input type="submit" value="Submit">
-    <form action="{{url_for('delete_producto', id=producto.tipo_producto) }}" method="post">
-                    <input class="css" type="submit" value="Eliminar">    
-    </form> 
-    <form action="{{url_for('update_producto', id=producto.tipo_producto) }}" method="post">
-                    <input class="css" type="submit" value="Modificar">    
-    </form>
+   
     
 
 </form>
