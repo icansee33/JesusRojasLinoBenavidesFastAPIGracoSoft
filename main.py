@@ -16,6 +16,7 @@ import os
 import uuid
 from datetime import datetime, timedelta
 
+
 # Crear todas las tablas en la base de datos
 models.Base.metadata.create_all(bind=engine)
 
@@ -142,34 +143,58 @@ async def iniciar_sesion_post(
   
 
 #Producto
+
+#Codigo de imagen de producto
+
+UPLOAD_DIR = "static/images/"
+if not os.path.exists(UPLOAD_DIR):
+    os.makedirs(UPLOAD_DIR)
+
+
+
+
+def save_upload_file(upload_file: UploadFile, upload_dir: str):
+    filename, file_extension = os.path.splitext(upload_file.filename)
+    unique_filename = f"{filename}_{uuid.uuid4().hex}{file_extension}"
+    file_path = os.path.join(upload_dir, unique_filename)
+
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(upload_file.file, buffer)
+
+    return file_path
+
+
 @app.post("/product/create/", response_model=schemas.ProductBase)
-async def create_producto_post(#current_user: Annotated[schemas.UserBase, Depends(get_current_user) ],
+async def create_producto_post(
                         request: Request, 
-                        id_artesano: str = Form(...), 
-                        id_tipo: str = Form(...), 
+                        id_artesano: int = Form(...), 
+                        id_tipo: int = Form(...), 
                         nombre: str = Form(...), 
                         descripcion: str = Form(...), 
                         categoria: str = Form(...), 
                         dimensiones: str = Form(...), 
-                        peso : str = Form(...),
+                        peso: float = Form(...),
+                        imagen: UploadFile = File(...),
                         db: Session = Depends(get_db)):
+    imagenpath = save_upload_file(imagen, UPLOAD_DIR)
     product = schemas.ProductCreate(
                               id_artesano=id_artesano,
                               id_tipo=id_tipo,
                               nombre=nombre,
                               descripcion=descripcion,
                               categoria=categoria, 
-                              dimensiones=dimensiones, 
+                              dimensiones=dimensiones,
+                              imagen=imagenpath, 
                               peso=peso)
     crudProducto.create_product(db=db, product=product)
-    products = crudTipoProducto.get_types(db)
-
-    print('Lista productos:', products)
-
+    products = crudProducto.get_products(db)
     for product in products:
         print("Id:", product.id_tipo)
         print("Nombre:", product.nombre)
     return templates.TemplateResponse("listaProducto.html.jinja", {"request": request, "Products": products})
+
+
+
 
 @app.post("/product/update/", response_class=HTMLResponse)
 async def update_producto_post(request: Request, 
@@ -276,7 +301,9 @@ async def delete_resena(request: Request, resena_id: int, db: Session = Depends(
 
 #Tipo Producto
 @app.post("/type_product/create/", response_model=schemas.TypeProductBase)
-async def create_tipo_producto_post(request: Request, nombre: str = Form(...), db: Session = Depends(get_db)):
+async def create_tipo_producto_post(request: Request, 
+                                    nombre: str = Form(...), 
+                                    db: Session = Depends(get_db)):
     print("Tipo Product: ", nombre)
     type_product = schemas.TypeCreate(nombre=nombre)
     crudTipoProducto.create_type_product(db=db, type_product=type_product)
@@ -334,57 +361,6 @@ async def update_tipo_producto_post(
 async def create_tipo_producto_template(request: Request):
     return templates.TemplateResponse("crearTipoProducto.html.jinja", {"request": request})
 
-
-
- #Codigo de imagen de producto
-
-UPLOAD_DIR = "static/images/"
-if not os.path.exists(UPLOAD_DIR):
-    os.makedirs(UPLOAD_DIR)
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-def save_upload_file(upload_file: UploadFile, upload_dir: str):
-    filename, file_extension = os.path.splitext(upload_file.filename)
-    unique_filename = f"{filename}_{uuid.uuid4().hex}{file_extension}"
-    file_path = os.path.join(upload_dir, unique_filename)
-
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(upload_file.file, buffer)
-
-    return file_path
-
-@app.post("/item/create/", response_class=HTMLResponse)
-async def create_item(
-    request: Request,
-    nombre: str = Form(...),
-    descripcion: str = Form(...),
-    categoria: str = Form(...),
-    tipo: str = Form(...),
-    dimensiones: str = Form(...),
-    peso: float = Form(...),
-    imagen: UploadFile = File(...),
-    db: Session = Depends(get_db)
-):
-    artesano_id = 1 
-    image_path = save_upload_file(imagen, UPLOAD_DIR)
-
-    item = schemas.ProductCreate(
-        nombre=nombre,
-        descripcion=descripcion,
-        categoria=categoria,
-        tipo=tipo,
-        dimensiones=dimensiones,
-        peso=peso,
-        imagen=image_path 
-    )
-    crudProducto.create_product(db=db, item=item, artesano_id=artesano_id)
-    return RedirectResponse("/", status_code=HTTP_303_SEE_OTHER)
 
 
 
