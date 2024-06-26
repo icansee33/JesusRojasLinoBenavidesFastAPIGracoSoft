@@ -32,5 +32,5 @@ def delete_type_product(db: Session, type_id: int):
     db.commit()
     return db_type
 
-def get_types(db: Session, skip: int = 10, limit: int = 100):
+def get_types(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Tipo_Producto).offset(skip).limit(limit).all()

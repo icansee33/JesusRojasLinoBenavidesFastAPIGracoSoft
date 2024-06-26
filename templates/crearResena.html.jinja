@@ -4,7 +4,7 @@
 
 <h1 class="titulo"> {% block title %} Únete a nuestra familia {% endblock %}</h1>
 
-<form action="{{ url_for('') }}" method="post">
+<form action="{{ url_for('create_resena_post') }}" method="post">
     
     <div>
         <input type="hidden" class="form-control" name="id_resena" placeholder="id_resena" required>
@@ -12,27 +12,30 @@
     </div>
 
     <div>
-        <label for="nombre">Fecha de invención: </label><br>
+        <label for="id_producto">Id producto: </label><br>
+        <input type="number" class="form-control" name="id_producto" placeholder="id_producto" required>
+        <br>
+    </div>
+
+    <div>
+        <label for="fecha_invencion">Fecha de invención: </label><br>
         <input type="date" class="form-control" name="fecha_invencion" placeholder="fecha_invencion" required>
         <br>
     </div>
+
     <div>
-        <label for="creador">Fecha de invención: </label><br>
-        <input type="date" class="form-control" name="creador" placeholder="creador" required>
+        <label for="creador">Creador: </label><br>
+        <input type="text" class="form-control" name="creador" placeholder="creador" required>
         <br>
     </div>
+
     <div>
-        <label for="nombre">Fecha de invención: </label><br>
-        <input type="date" class="form-control" name="fecha_invencion" placeholder="fecha_invencion" required>
-        <br>
-    </div>
-    <div>
-        <label for="nombre">Años produciéndolo: </label><br>
+        <label for="anios_produccion">Años produciéndolo: </label><br>
         <input type="number" class="form-control" name="anios_produccion" placeholder="anios_produccion" required>
         <br>
     </div>
     <div>
-        <label for="nombre">Anecdotas: </label><br>
+        <label for="anecdotas">Anecdotas: </label><br>
         <input type="text" class="form-control" name="anecdotas" placeholder="anecdotas" required>
         <br>
     </div>
@@ -41,3 +44,5 @@
 </form>
 
 {% endblock %}
+
+   

@@ -7,11 +7,12 @@ def create_product(db: Session, product: schemas.ProductCreate):
         nombre=product.nombre,
         descripcion=product.descripcion,
         categoria=product.categoria,
-        tipo=product.id_tipo,
+        id_tipo=product.id_tipo,
         dimensiones=product.dimensiones,
         peso=product.peso,
         imagen=product.imagen
     )
+
     db.add(db_product)
     db.commit()
     db.refresh(db_product)
@@ -39,5 +40,8 @@ def delete_product(db: Session, product_id: int):
     db.commit()
     return db_product
 
-def get_products(db: Session, skip: int = 10, limit: int = 100):
+def get_products(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Producto).offset(skip).limit(limit).all()
+
+'''def get_types(db: Session, skip: int = 10, limit: int = 100):
+    return db.query(models.Tipo_Producto).offset(skip).limit(limit).all()'''

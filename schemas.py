@@ -42,7 +42,7 @@ class ProductUpdate(ProductBase):
     id_producto: int
 
 class Product(ProductBase):
-
+    
     class Config:
         orm_mode = True
 
@@ -53,7 +53,6 @@ class ReviewBase(BaseModel):
     fecha_invencion: date
     anios_produccion: int
     creador:str
-
     anecdotas:str
 
 
@@ -64,7 +63,6 @@ class ReviewUpdate(ReviewBase):
     id_resena:int
 
 class Review(ReviewBase):
-    id_review: int
 
     class Config:
         orm_mode = True
