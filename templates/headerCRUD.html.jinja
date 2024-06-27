@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="{{url_for('static', path='/styles.css')}}" rel="stylesheet">
+
+    <title>{% block title %} {% endblock %}</title>
+</head>
+    <body>
+
+        <header>
+            <img src="/static/img/Logo.png" alt="Logo">
+                <nav>
+                    <a href="{{url_for('create_producto_template')}}">Productos</a>
+                    <a href="{{url_for('create_tipo_producto_template')}}">Tipo Producto</a>
+                    <a>Pedidos</a>
+                    <a>Encargos</a>
+                    <a>Calificaciones</a>
+                    <a>Reporte</a>
+                    <a>Perfil</a>
+                </nav>
+        </header>
+        
+            
+            <div class="banner">
+                <img class="Banner_img" src="/static/img/Banner1.jpg" alt="Banner1"> 
+            </div>
+            
+
+        <div class="content">
+          {% block content %} {% endblock %}
+        </div> 
+    </body>
+</html>

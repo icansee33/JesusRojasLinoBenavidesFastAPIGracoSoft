@@ -1,0 +1,55 @@
+{% extends 'headerCRUD.html.jinja' %}
+
+{% block content %}
+
+<h1 class="titulo"> {% block title %} Únete a nuestra familia {% endblock %}</h1>
+
+<form action="{{ url_for('create_usuario_post') }}" method="post">
+    
+    <div>
+        <label for="nombre">Nombre: </label><br>
+        <input type="text" class="form-control" name="nombre" placeholder="nombre" required>
+        <br>
+    </div>
+    <div>
+        <label for="apellido">Apellido: </label><br>
+        <input type="text" class="form-control" name="apellido" placeholder="apellido" required>
+        <br>
+    </div>
+    <div>
+        <label for="cedula_identidad">Cédula de identidad: </label><br>
+        <input type="text" class="form-control" name="cedula_identidad" placeholder="cedula_identidad" required>
+        <br>
+    </div>
+    <div>
+        <label for="fecha_nacimiento">Fecha de nacimiento: </label><br>
+        <input type="date" class="form-control" name="fecha_nacimiento" placeholder="fecha_nacimiento" required>
+        <br>
+    </div>
+    <div>
+        <label for="direccion">Dirección: </label><br>
+        <input type="text" class="form-control" name="direccion" placeholder="direccion" required>
+        <br>
+    </div>
+    <div>
+        <label for="correo_electronico">Correo electrónico: </label><br>
+        <input type="email" class="form-control" name="correo_electronico" placeholder="correo_electronico" required>
+        <br>
+    </div>
+    <div>
+        <label for="contrasena">Contraseña: </label><br>
+        <input type="password" class="form-control" name="contrasena" placeholder="contrasena" required>
+        <br>
+    </div>
+    <div>
+        <input type="hidden" class="form-control" name="tipo_usuario" placeholder="tipo_usuario" value="standard">
+        <br>
+        <input type="hidden" name="tipo_usuario" value="Cliente">
+        <input type="hidden" name="tipo_usuario" value="Artesano">
+    </div>
+
+
+    <input type="submit" value="Submit">
+</form>
+
+{% endblock %}

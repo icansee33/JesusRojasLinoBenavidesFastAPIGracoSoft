@@ -1,0 +1,56 @@
+{% extends 'headerCRUD.html.jinja' %}
+
+{% block content %}
+
+<h1 class="titulo"> {% block title %}Actualiza el producto {% endblock %}</h1>
+
+<form action="update_producto_template" method="post">
+
+    <div>
+        <label for="nombre">Nombre: </label><br>
+        <input type="text" class="form-control" name="nombre" placeholder="nombre" required value="{{product.nombre}}">
+        <input type="number" class="form-control" name="id_producto"  required value="{{product.id_producto}}">
+        <br>
+    </div>
+
+    <div>
+        <label for="id_artesano">Cédula del artesano: </label><br>
+        <input type="number" class="form-control" name="id_artesano" placeholder="id_artesano" required>
+        <br>
+    </div>
+
+    <div>
+        <label for="id_tipo">Tipo de poducto: </label><br>
+        <input type="text" class="form-control" name="id_tipo" placeholder="id_tipo" required>
+        <br>
+    </div>
+
+    <div>
+        <label for="categoria">Categoria: </label><br>
+        <input type="text" class="form-control" name="categoria" placeholder="categoria" required>
+        <br>
+    </div>
+
+    <div>
+        <label for="dimensiones">Dimensiones: </label><br>
+        <input type="text" class="form-control" name="dimensiones" placeholder="dimensiones" required>
+        <br>
+    </div>
+
+    <div>
+        <label for="peso">Peso g: </label><br>
+        <input type="text" class="form-control" name="peso" placeholder="peso" required>
+        <br>
+    </div>
+
+    <div>
+        <label for="imagen">Imagen:</label>
+        <input type="file" id="imagen" name="imagen"><br><br>
+    </div>
+
+    <input type="submit" value="Submit">
+
+
+</form>
+
+{% endblock %}

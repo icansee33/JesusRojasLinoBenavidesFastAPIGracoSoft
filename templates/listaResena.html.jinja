@@ -1,0 +1,43 @@
+{% extends 'baseArtesano.html.jinja' %}
+
+{% block content %}
+<h1>{% block title %} Tipo de Productos {% endblock %}</h1>
+    
+    
+    <table id="formcenter">
+
+        <tr>
+            <th>ID de la resena</th>
+            <th>ID de la producto</th>
+            <th>ID del artesano</th>
+            <th>Fecha de invención</th>
+            <th>Años de producción</th>
+            <th>Creador</th>
+            <th>Anecdotas</th>
+
+        </tr>
+        {% for review in typesProducts %}
+        <tr>
+
+            <td>{{ review.id_resena }}</td>
+            <td>{{ review.id_producto }} </td>
+            <td>{{ review.fecha_invencion }} </td>
+            <td>{{ review.creador }} </td>
+            <td>{{ review.anios_produccion }} </td>
+            <td>{{ review.anecdotas }} </td>
+            <td> 
+                <button value="Modificar" onclick="window.location.href='/review/update/{{review.id_resena}}' ;" >Modificar</button> 
+
+                <form action="/review/delete/{{ review.id_resena }}" method="post" style="display:inline;">
+                    <input type="hidden" class="form-control" name="id_resena"  value="{{review.id_resena}}">
+                    <button type="submit">Delete</button>
+                </form>
+            </td>
+
+        </tr>
+
+           
+           
+        {% endfor %}
+    </table>
+{% endblock %}

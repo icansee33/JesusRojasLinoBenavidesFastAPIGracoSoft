@@ -1,0 +1,127 @@
+{% extends 'headerCRUD.html.jinja' %}
+
+{% block content %}
+
+<h1 class="titulo"> {% block title %} Añadir un nuevo producto {% endblock %}</h1>
+
+<form action="{{ url_for('create_producto_post') }}" method="post"  enctype="multipart/form-data">
+
+
+    <div>
+        <label for="id_artesano">Cédula del Artesano: </label><br>
+        <input type="text" class="form-control" name="id_artesano" placeholder="Cédula del Artesano" required>
+        <br>
+    </div>
+    <div>
+        <label for="nombre">Nombre del Producto: </label><br>
+        <input type="text" class="form-control" name="nombre" placeholder="Nombre del Producto" required>
+        <br>
+    </div>
+    <div>
+        <label for="descripcion">Descripción: </label><br>
+        <textarea class="form-control" name="descripcion" placeholder="Descripción" required></textarea>
+        <br>
+    </div>
+    <div>
+        <label for="categoria">Categorías disponibles: </label><br>
+        <input type="text" class="form-control" name="categoria" placeholder="categoria" required>
+        <br>
+    </div>
+    <div>
+        <label for="id_tipo">Id del Tipo: </label><br>
+        <input type="text" class="form-control" name="id_tipo" placeholder="id_tipo" required>
+        <br>
+    </div>
+    <div>
+        <label for="dimensiones">Dimensiones: </label><br>
+        <input type="text" class="form-control" name="dimensiones" placeholder="Dimensiones" required>
+        <br>
+    </div>
+    <div>
+        <label for="peso">Peso: </label><br>
+        <input type="number"class="form-control" name="peso" placeholder="Peso" required>
+        <br>
+    </div>
+    <div>
+        <label for="imagen">Imagen:</label>
+        <input type="file" id="imagen" name="imagen"><br><br>
+    </div>
+   
+   
+    <input type="submit" value="Submit">
+   
+    
+
+</form>
+
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

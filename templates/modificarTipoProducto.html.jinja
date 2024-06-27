@@ -1,0 +1,18 @@
+{% extends 'headerCRUD.html.jinja' %}
+
+{% block content %}
+
+<h1 class="titulo"> {% block title %}Actualiza el tipo de producto {% endblock %}</h1>
+
+<form action="/type_product/update/" method="post">
+
+    <div>
+        <label for="nombre">Nombre: </label><br>
+        <input type="text" class="form-control" name="nombre" placeholder="nombre" required value="{{type_product.nombre}}">
+        <input type="hidden" class="form-control" name="id_tipo"  required value="{{type_product.id_tipo}}">
+        <br>
+    </div>
+    <input type="submit" value="Submit">
+</form>
+
+{% endblock %}
