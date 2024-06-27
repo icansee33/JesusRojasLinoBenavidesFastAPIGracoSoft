@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from schemas import Respuesta
-import tipos_compra.models as models
-import tipos_compra.schemas as schemas
+import tipo_Compra.models as models
+import tipo_Compra.schemas as schemas
 
 def crear_tipo_compra(db: Session, tipo_compra: schemas.Tipo_CompraCrear):
     db_tipo_compra = models.Tipo_Compra(
@@ -10,7 +10,7 @@ def crear_tipo_compra(db: Session, tipo_compra: schemas.Tipo_CompraCrear):
     db.add(db_tipo_compra)
     db.commit()
     db.refresh(db_tipo_compra)
-    return db_tipo_compra
+    return db_tipo_compra 
 
 def listar_tipos_compras(db: Session): 
     return db.query(models.Tipo_Compra).all()

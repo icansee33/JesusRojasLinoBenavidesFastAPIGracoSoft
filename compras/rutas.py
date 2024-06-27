@@ -3,16 +3,15 @@ from sqlalchemy.orm import Session
 from database import SessionLocal, engine
 import compras.models as models 
 import compras.schemas as schemas
-import compras.service as service
+import compras.CrudCompras as service
 
-from usuarios.service import AuthHandler
+from crudUsuario import AuthHandler
 auth_handler = AuthHandler()
 
 models.Base.metadata.create_all(bind=engine)
 
 router = APIRouter()
 
-# Dependency
 def get_db():
     db = SessionLocal()
     try:

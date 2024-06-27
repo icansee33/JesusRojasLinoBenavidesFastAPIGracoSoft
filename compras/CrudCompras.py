@@ -3,34 +3,23 @@ from datetime import datetime
 from schemas import Respuesta
 import compras.models as models
 import compras.schemas as schemas
-
-
-import usuarios.service as usuario_service
-import productos.service as producto_service
-import tipos_compra.service as tipo_compra_service
+import crudUsuario as usuario_service
+import crudProducto as producto_service
+import tipo_Compra.crud as tipo_compra_service
 
 def realizar_compra(db: Session, compra: schemas.CompraCrear):
 
-    ### Validaciones ###
-
-    #!VALIDACION USUARIO
-
-    #Existe usuario
     respuesta_usuario = usuario_service.buscar_usuario(db=db, cedula=compra.cliente_cedula)
     if not respuesta_usuario.ok:
-        return Respuesta[schemas.Compra](ok=False, mensaje='No existe cliente registrado con la cédula con que se intenta realizar la compra')
+        return Respuesta[schemas.Compra](ok=False, mensaje='cedula inexistente, porfavor intentelo de nuevo')
 
-    #Existe producto
     respuesta_producto = producto_service.get_producto(db=db, id=compra.producto_id)
     if not respuesta_producto.ok:
-        return Respuesta[schemas.Compra](ok=False, mensaje='No existe producto registrado del que se intenta realizar la compra')
+        return Respuesta[schemas.Compra](ok=False, mensaje='Producto inexistente')
 
-    #Existe tipo de compra
     respuesta_tipo_compra = tipo_compra_service.get_tipo_compra(db=db, id=compra.tipo_compra_id)
     if not respuesta_tipo_compra.ok:
-        return Respuesta[schemas.Compra](ok=False, mensaje='No existe tipo de compra registrado con el cual se intenta realizar la compra')
-
-    ### ------------ ###
+        return Respuesta[schemas.Compra](ok=False, mensaje='Tipo de compra inexistente')
 
     db_compra = models.Compra(
         cantidad=compra.cantidad, 
@@ -43,7 +32,6 @@ def realizar_compra(db: Session, compra: schemas.CompraCrear):
     db.commit()
     db.refresh(db_compra)
 
-
     compra = schemas.Compra(id=db_compra.id, 
                             cantidad=db_compra.cantidad, 
                             cliente_cedula=db_compra.cliente_cedula, 
@@ -55,53 +43,32 @@ def realizar_compra(db: Session, compra: schemas.CompraCrear):
 
 
 def aprobar_compra(db: Session, id_compra: int):
-    ### Validaciones ###
 
-    # El usuario loggeado que ejecuta esta petición sea el artesano dueño de este producto (#!VALIDACION USUARIO)
-    #
-    #
-
-    # Existe la compra
     compra_found = db.query(models.Compra).filter(models.Compra.id == id_compra).first()
 
     if compra_found == None:
-        return Respuesta[schemas.Compra](ok=False, mensaje='Compra a aprobar no encontrada')
-    ### ------------ ###
-
+        return Respuesta[schemas.Compra](ok=False, mensaje='Al parecer no podemos aprobar su compra, porfavor verifique que exista')
     compra_found.estado_compra_id = 2
     db.commit()
-
-    return Respuesta[schemas.Compra](ok=True, mensaje='Compra aprobada exitosamente')
+    return Respuesta[schemas.Compra](ok=True, mensaje='La compra fue aprobada exitosamente')
 
 
 def rechazar_compra(db: Session, id_compra: int):
-    ### Validaciones ###
-
-    # El usuario loggeado que ejecuta esta petición sea el artesano dueño de este producto (#!VALIDACION USUARIO)
-    #
-    #
-
-    # Existe la compra
     compra_found = db.query(models.Compra).filter(models.Compra.id == id_compra).first()
 
     if compra_found == None:
-        return Respuesta[schemas.Compra](ok=False, mensaje='Compra a rechazar no encontrada')
-    ### ------------ ###
-
+        return Respuesta[schemas.Compra](ok=False, mensaje='La compra que desea rechazar no existe')
     compra_found.estado_compra_id = 3
     db.commit()
-
-    return Respuesta[schemas.Compra](ok=True, mensaje='Compra rechazada exitosamente')
+    return Respuesta[schemas.Compra](ok=True, mensaje='La compra fue rechazada exitosamente')
 
 def listar_compras(db: Session): 
     return db.query(models.Compra).all()
 
 def get_compra(db: Session, id: int):
     returned = db.query(models.Compra).filter(models.Compra.id == id).first()
-
     if returned == None:
-        return Respuesta[schemas.Compra](ok=False, mensaje='Compra no encontrada')
-
+        return Respuesta[schemas.Compra](ok=False, mensaje='La compra no pudo ser encontrada')
     compra = schemas.Compra(id=returned.id, 
                             cantidad=returned.cantidad, 
                             cliente_cedula=returned.cliente_cedula, 
