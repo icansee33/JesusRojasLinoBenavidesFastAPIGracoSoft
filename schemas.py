@@ -30,6 +30,7 @@ class ProductBase(BaseModel):
     id_tipo: int
     nombre: str
     descripcion: str
+    cantidad_disponible: int
     categoria: str
     dimensiones: str
     peso: float

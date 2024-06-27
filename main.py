@@ -69,7 +69,7 @@ async def create_usuario_post(request: Request,
     if db_user: 
         raise HTTPException(status_code=400, detail="CI already registered")
     crudUsuario.create_user(db=db, user=user)
-    return templates.TemplateResponse("homeNoIniciado.html.jinja", {"request": request})
+    return templates.TemplateResponse("crearUsuario.html.jinja", {"request": request})
 
 
 
@@ -158,7 +158,8 @@ async def create_producto_post(
                         id_artesano: int = Form(...), 
                         id_tipo: int = Form(...), 
                         nombre: str = Form(...), 
-                        descripcion: str = Form(...), 
+                        descripcion: str = Form(...),
+                        cantidad_disponible: str = Form(...),
                         categoria: str = Form(...), 
                         dimensiones: str = Form(...), 
                         peso: float = Form(...),
@@ -171,6 +172,7 @@ async def create_producto_post(
                               id_tipo=int(id_tipo),
                               nombre=nombre,
                               descripcion=descripcion,
+                              cantidad_disponible=cantidad_disponible,
                               categoria=categoria, 
                               dimensiones=dimensiones,
                               imagen=imagenpath, 
@@ -203,6 +205,8 @@ async def update_producto_post(request: Request,
     return templates.TemplateResponse("listaProducto.html.jinja", {"request": request, "Products": products})
 
 
+
+
 @app.post("/type_product/update/", response_class=HTMLResponse)
 async def update_tipo_producto_post(
     request: Request, 
@@ -233,6 +237,7 @@ async def create_producto_template(request: Request):
 async def update_producto_template(request: Request, product_id: int, db: Session = Depends(get_db)):
     products = crudProducto.get_product_by_id(db, product_id)
     return templates.TemplateResponse("modificarProducto.html.jinja", {"request": request, "Products": products})
+
 
 @app.get("/product/list/", response_class=HTMLResponse, name="read_productos")
 async def read_productos(request: Request, db: Session = Depends(get_db)):

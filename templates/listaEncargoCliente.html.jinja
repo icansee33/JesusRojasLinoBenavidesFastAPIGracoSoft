@@ -1,0 +1,89 @@
+{% extends 'base.html.jinja' %}
+
+{% block content %}
+<h1>{% block title %} Productos {% endblock %}</h1>
+    
+<form action="{{ url_for('create_producto_post') }}" method="post"  enctype="multipart/form-data">
+
+  encargo_id = Column(Integer, primary_key=True)
+    producto_id = Column(Integer, ForeignKey('productos.id_producto'), nullable=False)
+    cliente_id = Column(Integer, ForeignKey('usuarios.cedula_identidad'), nullable=False)
+    estado_encargo = Column(String(50), nullable=False)
+    fecha_encargo = Column(Date, nullable=False)
+    metodo_envio = Column(String(50), nullable=False)
+    descripcion_encargo = Column(String, nullable=False)
+
+    <div>
+        <label for="encargo_id">Cédula del Artesano: </label><br>
+        <input type="text" class="form-control" name="encargo_id" placeholder="Cédula del Artesano" required>
+        <br>
+    </div>
+    <div>
+        <label for="nombre">Nombre del Producto: </label><br>
+        <input type="text" class="form-control" name="nombre" placeholder="Nombre del Producto" required>
+        <br>
+    </div>
+    <div>
+        <label for="descripcion">Descripción: </label><br>
+        <textarea class="form-control" name="descripcion" placeholder="Descripción" required></textarea>
+        <br>
+    </div>
+    <div>
+        <label for="categoria">Categorías disponibles: </label><br>
+        <input type="text" class="form-control" name="categoria" placeholder="categoria" required>
+        <br>
+    </div>
+    <div>
+        <label for="id_tipo">Id del Tipo: </label><br>
+        <input type="text" class="form-control" name="id_tipo" placeholder="id_tipo" required>
+        <br>
+    </div>
+    <div>
+        <label for="dimensiones">Dimensiones: </label><br>
+        <input type="text" class="form-control" name="dimensiones" placeholder="Dimensiones" required>
+        <br>
+    </div>
+    <div>
+        <label for="cantidad_disponible">Cantidad disponible: </label><br>
+        <input type="number" class="form-control" name="cantidad_disponible" placeholder="cantidad_disponible" required>
+        <br>
+    </div>
+    <div>
+        <label for="peso">Peso: </label><br>
+        <input type="number"class="form-control" name="peso" placeholder="Peso" required>
+        <br>
+    </div>
+    <div>
+        <label for="imagen">Imagen:</label>
+        <input type="file" id="imagen" name="imagen" required><br>
+    </div>
+   
+   
+    <input type="submit" value="Submit">
+
+</form>
+
+
+<table id="formcenter">
+    <tr>
+        <th>ID de Producto</th>
+        <th>Nombre</th>
+        <th>Descripcion</th>
+        <th>Categoria</th>
+        <th>Dimensiones</th>
+        <th>Peso</th>
+        <th>Imagen</th>
+    </tr>
+    {% for product in Products %}
+    <tr>
+        <td>{{ product.id_producto }}</td>
+        <td>{{ product.nombre }}</td>
+        <td>{{ product.descripcion }}</td>
+        <td>{{ product.categoria }}</td>
+        <td>{{ product.dimensiones }}</td>
+        <td>{{ product.peso }}</td>
+        <td><img src="/{{product.imagen}}" alt="{{ product.nombre }}" width="100"></td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

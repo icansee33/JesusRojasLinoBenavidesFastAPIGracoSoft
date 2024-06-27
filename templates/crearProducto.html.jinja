@@ -1,4 +1,4 @@
-{% extends 'headerCRUD.html.jinja' %}
+{% extends 'baseArtesano.html.jinja' %}
 
 {% block content %}
 
@@ -38,13 +38,18 @@
         <br>
     </div>
     <div>
+        <label for="cantidad_disponible">Cantidad disponible: </label><br>
+        <input type="number" class="form-control" name="cantidad_disponible" placeholder="cantidad_disponible" required>
+        <br>
+    </div>
+    <div>
         <label for="peso">Peso: </label><br>
         <input type="number"class="form-control" name="peso" placeholder="Peso" required>
         <br>
     </div>
     <div>
         <label for="imagen">Imagen:</label>
-        <input type="file" id="imagen" name="imagen"><br><br>
+        <input type="file" id="imagen" name="imagen" required><br>
     </div>
    
    

@@ -1,10 +1,10 @@
-{% extends 'headerCRUD.html.jinja' %}
+{% extends 'baseArtesano.html.jinja' %}
 
 {% block content %}
 
 <h1 class="titulo"> {% block title %}Actualiza el producto {% endblock %}</h1>
 
-<form action="update_producto_template" method="post">
+<form action="update_producto_post" method="post">
 
     <div>
         <label for="nombre">Nombre: </label><br>
