@@ -4,42 +4,54 @@
 
 <h1 class="titulo"> {% block title %}Actualiza el producto {% endblock %}</h1>
 
-<form action="update_producto_post" method="post">
+<form action="/product/update/" method="post" enctype="multipart/form-data">
 
     <div>
         <label for="nombre">Nombre: </label><br>
         <input type="text" class="form-control" name="nombre" placeholder="nombre" required value="{{product.nombre}}">
-        <input type="number" class="form-control" name="id_producto"  required value="{{product.id_producto}}">
+        <input type="hidden" class="form-control" name="id_producto" required value="{{product.id_producto}}">
         <br>
     </div>
 
     <div>
         <label for="id_artesano">Cédula del artesano: </label><br>
-        <input type="number" class="form-control" name="id_artesano" placeholder="id_artesano" required>
+        <input type="number" class="form-control" name="id_artesano" placeholder="id_artesano" required value="{{product.id_artesano}}">
         <br>
     </div>
 
     <div>
-        <label for="id_tipo">Tipo de poducto: </label><br>
-        <input type="text" class="form-control" name="id_tipo" placeholder="id_tipo" required>
+        <label for="id_tipo">Tipo de producto: </label><br>
+        <input type="text" class="form-control" name="id_tipo" placeholder="id_tipo" required value="{{product.id_tipo}}">
         <br>
     </div>
 
     <div>
         <label for="categoria">Categoria: </label><br>
-        <input type="text" class="form-control" name="categoria" placeholder="categoria" required>
+        <input type="text" class="form-control" name="categoria" placeholder="categoria" required value="{{product.categoria}}">
+        <br>
+    </div>
+
+    <div>
+        <label for="descripcion">Descripción: </label><br>
+        <textarea class="form-control" name="descripcion" placeholder="Descripción" required>{{product.descripcion}}</textarea>
         <br>
     </div>
 
     <div>
         <label for="dimensiones">Dimensiones: </label><br>
-        <input type="text" class="form-control" name="dimensiones" placeholder="dimensiones" required>
+        <input type="text" class="form-control" name="dimensiones" placeholder="dimensiones" required value="{{product.dimensiones}}">
+        <br>
+    </div>
+
+    <div>
+        <label for="cantidad_disponible">Cantidad disponible: </label><br>
+        <input type="number" class="form-control" name="cantidad_disponible" placeholder="cantidad_disponible" required value="{{product.cantidad_disponible}}">
         <br>
     </div>
 
     <div>
         <label for="peso">Peso g: </label><br>
-        <input type="text" class="form-control" name="peso" placeholder="peso" required>
+        <input type="text" class="form-control" name="peso" placeholder="peso" required value="{{product.peso}}">
         <br>
     </div>
 
@@ -49,7 +61,6 @@
     </div>
 
     <input type="submit" value="Submit">
-
 
 </form>
 

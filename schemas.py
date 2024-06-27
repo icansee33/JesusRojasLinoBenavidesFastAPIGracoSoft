@@ -49,7 +49,6 @@ class Product(ProductBase):
 
 #Reseñas
 class ReviewBase(BaseModel):
-    id_usuario: int
     id_producto: int
     fecha_invencion: date
     anios_produccion: int
