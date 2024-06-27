@@ -26,7 +26,6 @@ class User(UserBase):
 
 #producto
 class ProductBase(BaseModel):
-    id_producto: int
     id_artesano: int
     id_tipo: int
     nombre: str
@@ -40,30 +39,30 @@ class ProductCreate(ProductBase):
     pass
 
 class ProductUpdate(ProductBase):
-    pass
-
-class Product(ProductBase):
     id_producto: int
 
+class Product(ProductBase):
+    
     class Config:
         orm_mode = True
 
 #Reseñas
 class ReviewBase(BaseModel):
-    id_resena:int
     id_usuario: int
     id_producto: int
-    calificacion: int
-    comentario: str
+    fecha_invencion: date
+    anios_produccion: int
+    creador:str
+    anecdotas:str
+
 
 class ReviewCreate(ReviewBase):
     pass
 
 class ReviewUpdate(ReviewBase):
-    pass
+    id_resena:int
 
 class Review(ReviewBase):
-    id_review: int
 
     class Config:
         orm_mode = True
@@ -71,19 +70,17 @@ class Review(ReviewBase):
 
 
 #Tipo
-class TipoUserBase(BaseModel):
+
+class TypeProductBase(BaseModel):
     nombre: str
-    id_tipo: str
- 
 
-class TipoCreate(TipoUserBase):
-   pass
+class TypeCreate(TypeProductBase):
+    pass
 
-class TipoUpdate(TipoUserBase):
-   pass
+class TypeUpdate(TypeProductBase):
+    id_tipo: int
 
-class  TipoUser(TipoUserBase):
-    id_usuario: int
+class TypeProduct(TypeProductBase):
 
     class Config:
         orm_mode = True
