@@ -24,7 +24,7 @@ class User(UserBase):
     class Config:
         orm_mode = True
 
-#producto
+#productoooo
 class ProductBase(BaseModel):
     id_artesano: int
     id_tipo: str
