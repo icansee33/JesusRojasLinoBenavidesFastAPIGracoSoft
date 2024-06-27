@@ -2,6 +2,7 @@ from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Date, Doubl
 from sqlalchemy.orm import relationship
 from sqlApp.database import Base
 
+#Hello
 class Usuario(Base):
     __tablename__ = 'usuarios'
     cedula_identidad = Column(Integer, primary_key=True)
@@ -37,6 +38,7 @@ class Producto(Base):
     id_tipo = Column(Integer, ForeignKey('tipo_producto.id_tipo'), nullable=False)
     nombre = Column(String(100), nullable=False)
     descripcion = Column(String, nullable=False)
+    cantidad_disponible = Column(Integer, nullable=False)
     categoria = Column(String(50), nullable=False)
     dimensiones = Column(String(50), nullable=False)
     peso = Column(Double(10, 2), nullable=False)
