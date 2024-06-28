@@ -15,7 +15,9 @@ from typing import Annotated, Optional, Union
 import shutil
 import os
 import uuid
+auth_handler = AuthHandler()
 from datetime import datetime, timedelta
+
 
 
 # Crear todas las tablas en la base de datos
@@ -38,7 +40,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
 
 
 @app.post("/usuario/create/", response_model=schemas.UserBase)
@@ -382,4 +383,78 @@ async def create_tipo_producto_template(request: Request):
 
 
 
+
+@app.get("/pedidos/", response_class=HTMLResponse)
+async def read_pedidos(request: Request, db: Session = Depends(get_db)):
+    pedidos = crudpedidos.get_pedidos(db)
+    return templates.TemplateResponse("pedido_list.html", {"request": request, "pedidos": pedidos})
+
+@app.get("/pedido/create/", response_class=HTMLResponse)
+async def create_pedido_form(request: Request):
+    return templates.TemplateResponse("pedido_create.html", {"request": request})
+
+@app.post("/pedido/create/", response_class=HTMLResponse)
+async def create_pedido(
+    request: Request,
+    id_cliente: int = Form(...),
+    fecha_pedido: date = Form(...),
+    cantidad_productos: int = Form(...),
+    metodo_env: str = Form(...),
+    estado: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    pedido = schemas.PedidoCreate(
+        id_cliente=id_cliente,
+        fecha_pedido=fecha_pedido,
+        cantidad_productos=cantidad_productos,
+        metodo_env=metodo_env,
+        estado=estado
+    )
+    crudpedidos.create_pedido(db=db, pedido=pedido)
+    return RedirectResponse("/pedidos/", status_code=HTTP_303_SEE_OTHER)
+
+@app.get("/pedido/{pedido_id}/", response_class=HTMLResponse)
+async def read_pedido(request: Request, pedido_id: int, db: Session = Depends(get_db)):
+    pedido = crudpedidos.get_pedido(db, pedido_id=pedido_id)
+    if pedido is None:
+        raise HTTPException(status_code=404, detail="Pedido not found")
+    return templates.TemplateResponse("pedido_detail.html", {"request": request, "pedido": pedido})
+
+@app.get("/pedido/edit/{pedido_id}/", response_class=HTMLResponse)
+async def edit_pedido_form(request: Request, pedido_id: int, db: Session = Depends(get_db)):
+    pedido = crudpedidos.get_pedido(db, pedido_id=pedido_id)
+    if pedido is None:
+        raise HTTPException(status_code=404, detail="Pedido not found")
+    return templates.TemplateResponse("pedido_edit.html", {"request": request, "pedido": pedido})
+
+@app.post("/pedido/edit/{pedido_id}/", response_class=HTMLResponse)
+async def edit_pedido(
+    request: Request,
+    pedido_id: int,
+    id_cliente: int = Form(...),
+    fecha_pedido: date = Form(...),
+    cantidad_productos: int = Form(...),
+    metodo_env: str = Form(...),
+    estado: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    pedido_update = schemas.PedidoUpdate(
+        id_cliente=id_cliente,
+        fecha_pedido=fecha_pedido,
+        cantidad_productos=cantidad_productos,
+        metodo_env=metodo_env,
+        estado=estado
+    )
+    updated_pedido = crudpedidos.update_pedido(db=db, pedido_id=pedido_id, pedido=pedido_update)
+    if updated_pedido is None:
+        raise HTTPException(status_code=404, detail="Pedido not found")
+    return RedirectResponse("/pedidos/", status_code=HTTP_303_SEE_OTHER)
+
+@app.post("/pedido/delete/{pedido_id}/", response_class=HTMLResponse)
+async def delete_pedido(request: Request, pedido_id: int, db: Session = Depends(get_db)):
+    deleted_pedido = crudpedidos.delete_pedido(db=db, pedido_id=pedido_id)
+    if deleted_pedido is None:
+        raise HTTPException(status_code=404, detail="Pedido not found")
+    return RedirectResponse("/pedidos/", status_code=HTTP_303_SEE_OTHER)
+    
 

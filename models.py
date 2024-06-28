@@ -20,6 +20,7 @@ class Usuario(Base):
     encargos = relationship("Encargo", back_populates="cliente")
     calificaciones = relationship("Calificacion", back_populates="cliente")
 
+#prueba 2
 
 
 class Tipo_Producto(Base):
