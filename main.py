@@ -15,7 +15,6 @@ from typing import Annotated, Optional, Union
 import shutil
 import os
 import uuid
-auth_handler = AuthHandler()
 from datetime import datetime, timedelta
 
 
