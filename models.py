@@ -2,7 +2,7 @@ from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Date, Doubl
 from sqlalchemy.orm import relationship
 from sqlApp.database import Base
 
-#Hello
+
 class Usuario(Base):
     __tablename__ = 'usuarios'
     cedula_identidad = Column(Integer, primary_key=True)
@@ -20,7 +20,6 @@ class Usuario(Base):
     encargos = relationship("Encargo", back_populates="cliente")
     calificaciones = relationship("Calificacion", back_populates="cliente")
 
-#prueba 2
 
 
 class Tipo_Producto(Base):

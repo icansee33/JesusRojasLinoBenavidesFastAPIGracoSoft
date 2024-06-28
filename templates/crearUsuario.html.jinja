@@ -5,7 +5,6 @@
 <h1 class="titulo"> {% block title %} Únete a nuestra familia {% endblock %}</h1>
 
 <form action="{{ url_for('create_usuario_post') }}" method="post">
-    
     <div>
         <label for="nombre">Nombre: </label><br>
         <input type="text" class="form-control" name="nombre" placeholder="nombre" required>
@@ -42,13 +41,13 @@
         <br>
     </div>
     <div>
-        <input type="hidden" class="form-control" name="tipo_usuario" placeholder="tipo_usuario" value="standard">
+        <label for="tipo_usuario">Tipo de Usuario: </label><br>
+        <select class="form-control" name="tipo_usuario" required>
+            <option value="Cliente">Cliente</option>
+            <option value="Artesano">Artesano</option>
+        </select>
         <br>
-        <input type="hidden" name="tipo_usuario" value="Cliente">
-        <input type="hidden" name="tipo_usuario" value="Artesano">
     </div>
-
-
     <input type="submit" value="Submit">
 </form>
 

@@ -4,8 +4,7 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-
-from main import get_db
+from dependencias import get_db  # Change this import
 import crudUsuario, models, schemas
 from sqlApp.database import SessionLocal
 

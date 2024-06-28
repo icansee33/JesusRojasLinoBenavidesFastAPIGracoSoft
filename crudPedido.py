@@ -11,7 +11,7 @@ def create_order(db: Session, order: schemas.PedidoCreate):
         id_cliente=order.id_cliente,
         fecha_pedido=order.fecha_pedido,
         cantidad_productos=order.cantidad_productos,
-        metodo_env=order.metodo_env,
+        metodo_envio=order.metodo_envio,
         estado=order.estado
     )
     db.add(db_order)

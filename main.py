@@ -4,19 +4,19 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-import crudUsuario, models, schemas,  crudpedidos, auth
+import crudUsuario, models, schemas,  crudPedido, auth
 import crudProducto, crudResena, crudTipoProducto, schemas
 from seguridad.manejarToken import ACCESS_TOKEN_EXPIRE_MINUTES, authenticate_user, create_access_token, get_current_user
 from sqlApp.database import SessionLocal, engine
 from starlette.responses import RedirectResponse, HTMLResponse
 from starlette.status import HTTP_303_SEE_OTHER, HTTP_400_BAD_REQUEST
-from fastapi import Depends
+from dependencias import get_db  # Change this import
 from typing import Annotated, Optional, Union
 import shutil
 import os
 import uuid
-auth_handler = AuthHandler() # type: ignore
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
+
 
 
 
@@ -94,12 +94,6 @@ async def read_usuario(request: Request, item_id: int, db: Session = Depends(get
     return templates.TemplateResponse("perfilUsuario.html", {"request": request, "item": item})
 
 
-@app.get("/usuario/update/{user_id}/", response_class=HTMLResponse)
-async def update_usuario_form(request: Request, item_id: int, db: Session = Depends(get_db)):
-    item = crudUsuario.get_user_by_ci(db, item_id)
-    if item is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return templates.TemplateResponse("modificarUsuario.html.jinja", {"request": request, "item": item})
 
 
 # Iniciar sesión
@@ -380,12 +374,12 @@ async def create_tipo_producto_template(request: Request):
 #Pedido
 @app.get("/order/list", response_class=HTMLResponse, name="read_pedidos")
 async def read_pedidos(request: Request, db: Session = Depends(get_db)):
-orders = crudTipoProducto.get_types(db)
-print('Ordenes:', orders)
-return templates.TemplateResponse("listaPedidoArtesano.html.jinja", {"request": request, "Orders": orders})
+    orders = crudTipoProducto.get_types(db)
+    print('Ordenes:', orders)
+    return templates.TemplateResponse("listaPedidoArtesano.html.jinja", {"request": request, "Orders": orders})
 
 
-@app.post("/token", response_model=schemas.Token)
+@app.post("/token")
 async def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()):
     usuario = auth.autenticar_usuario(db, form_data.username, form_data.password)
     if not usuario:
@@ -400,27 +394,50 @@ async def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
+
+
+
+
+
 @app.get("/perfil_usuario/", response_class=HTMLResponse)
 async def perfil_usuario(request: Request, db: Session = Depends(get_db), usuario_actual: models.Usuario = Depends(auth.obtener_usuario_activo_actual)):
     return templates.TemplateResponse("perfil.html.jinja", {"request": request, "usuario": usuario_actual})
 
 @app.post("/perfil_usuario/update/")
-async def actualizar_perfil_usuario(
+async def update_perfil_usuario(
     request: Request,
     nombre: str = Form(...),
-    correo: str = Form(...),
+    apellido: str = Form(...),
+    correo_electronico: str = Form(...),
+    direccion: str = Form(...),
     contrasena: str = Form(...),
-    cedula: str = Form(...),
+    cedula_identidad: str = Form(...),
+    tipo_usuario: str = Form(...),
+    fecha_nacimiento: date = Form(...),
+
     db: Session = Depends(get_db),
     usuario_actual: models.Usuario = Depends(auth.obtener_usuario_activo_actual)
 ):
-    usuario_actualizado = schemas.UsuarioActualizar(
+    usuario_actualizado = schemas.UserUpdate(
         nombre=nombre,
-        correo_electronico=correo,
+        apellido=apellido,
+        correo_electronico=correo_electronico,
+        fecha_nacimiento=fecha_nacimiento,
+        direccion=direccion,
         contrasena=contrasena,
-        cedula_identidad=cedula
+        cedula_identidad=cedula_identidad,
+        tipo_usuario= tipo_usuario
     )
-    usuario = crudUsuario.actualizar_usuario(db=db, user_id=usuario_actual.cedula_identidad, usuario=usuario_actualizado)
+    usuario = crudUsuario.update_user(db=db, 
+                                      user_id=usuario_actual.cedula_identidad, 
+                                      usuario_actualizado=usuario_actualizado, 
+                                      fecha_nacimiento=fecha_nacimiento, 
+                                      direccion= direccion, 
+                                      contrasena= contrasena,
+                                      cedula_identidad= cedula_identidad,
+                                      tipo_usuario= tipo_usuario,
+                                      )
     if usuario is None:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     return RedirectResponse("/perfil_usuario/", status_code=HTTP_303_SEE_OTHER)
+
