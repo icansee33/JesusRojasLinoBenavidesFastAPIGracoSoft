@@ -71,7 +71,7 @@ class Pedido(Base):
     id_cliente = Column(Integer, ForeignKey('usuarios.cedula_identidad'), nullable=False)
     fecha_pedido = Column(Date, nullable=False)
     cantidad_productos = Column(Integer, nullable=False)
-    metodo_env = Column(String(50), nullable=False)
+    metodo_envio = Column(String(50), nullable=False)
     estado = Column(String(50), nullable=False)
 
     cliente = relationship("Usuario", back_populates="pedidos")
@@ -80,9 +80,9 @@ class Pedido(Base):
 
 class Encargo(Base):
     __tablename__ = 'encargos'
-    encargo_id = Column(Integer, primary_key=True)
-    producto_id = Column(Integer, ForeignKey('productos.id_producto'), nullable=False)
-    cliente_id = Column(Integer, ForeignKey('usuarios.cedula_identidad'), nullable=False)
+    id_encargo = Column(Integer, primary_key=True)
+    id_producto= Column(Integer, ForeignKey('productos.id_producto'), nullable=False)
+    cedula_identidad = Column(Integer, ForeignKey('usuarios.cedula_identidad'), nullable=False)
     estado_encargo = Column(String(50), nullable=False)
     fecha_encargo = Column(Date, nullable=False)
     metodo_envio = Column(String(50), nullable=False)

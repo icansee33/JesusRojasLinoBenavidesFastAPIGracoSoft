@@ -1,8 +1,8 @@
 """init
 
-Revision ID: c092b72017dc
+Revision ID: 50914892f53d
 Revises: 
-Create Date: 2024-06-27 09:38:49.651053
+Create Date: 2024-06-28 11:16:27.738976
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'c092b72017dc'
+revision: str = '50914892f53d'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -47,7 +47,7 @@ def upgrade() -> None:
     sa.Column('id_cliente', sa.Integer(), nullable=False),
     sa.Column('fecha_pedido', sa.Date(), nullable=False),
     sa.Column('cantidad_productos', sa.Integer(), nullable=False),
-    sa.Column('metodo_env', sa.String(length=50), nullable=False),
+    sa.Column('metodo_envio', sa.String(length=50), nullable=False),
     sa.Column('estado', sa.String(length=50), nullable=False),
     sa.ForeignKeyConstraint(['id_cliente'], ['usuarios.cedula_identidad'], ),
     sa.PrimaryKeyConstraint('id_pedido')
@@ -88,16 +88,16 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id_detalle')
     )
     op.create_table('encargos',
-    sa.Column('encargo_id', sa.Integer(), nullable=False),
-    sa.Column('producto_id', sa.Integer(), nullable=False),
-    sa.Column('cliente_id', sa.Integer(), nullable=False),
+    sa.Column('id_encargo', sa.Integer(), nullable=False),
+    sa.Column('id_producto', sa.Integer(), nullable=False),
+    sa.Column('cedula_identidad', sa.Integer(), nullable=False),
     sa.Column('estado_encargo', sa.String(length=50), nullable=False),
     sa.Column('fecha_encargo', sa.Date(), nullable=False),
     sa.Column('metodo_envio', sa.String(length=50), nullable=False),
     sa.Column('descripcion_encargo', sa.String(), nullable=False),
-    sa.ForeignKeyConstraint(['cliente_id'], ['usuarios.cedula_identidad'], ),
-    sa.ForeignKeyConstraint(['producto_id'], ['productos.id_producto'], ),
-    sa.PrimaryKeyConstraint('encargo_id')
+    sa.ForeignKeyConstraint(['cedula_identidad'], ['usuarios.cedula_identidad'], ),
+    sa.ForeignKeyConstraint(['id_producto'], ['productos.id_producto'], ),
+    sa.PrimaryKeyConstraint('id_encargo')
     )
     op.create_table('pedido_producto',
     sa.Column('id_pedido_producto', sa.Integer(), nullable=False),

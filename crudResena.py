@@ -36,5 +36,6 @@ def delete_resena(db: Session, review_id: int):
     db.commit()
     return db_review
 
-def get_resenas(db: Session, skip: int = 10, limit: int = 100):
+def get_resenas(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Resena).offset(skip).limit(limit).all()
+

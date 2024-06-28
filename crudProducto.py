@@ -6,6 +6,7 @@ def create_product(db: Session, product: schemas.ProductCreate):
         id_artesano=product.id_artesano,
         nombre=product.nombre,
         descripcion=product.descripcion,
+        cantidad_disponible= product.cantidad_disponible,
         categoria=product.categoria,
         id_tipo=product.id_tipo,
         dimensiones=product.dimensiones,

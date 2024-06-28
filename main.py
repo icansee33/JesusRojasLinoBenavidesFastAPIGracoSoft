@@ -70,7 +70,7 @@ async def create_usuario_post(request: Request,
     if db_user: 
         raise HTTPException(status_code=400, detail="CI already registered")
     crudUsuario.create_user(db=db, user=user)
-    return templates.TemplateResponse("homeNoIniciado.html.jinja", {"request": request})
+    return templates.TemplateResponse("crearUsuario.html.jinja", {"request": request})
 
 
 
@@ -100,10 +100,6 @@ async def update_usuario_form(request: Request, item_id: int, db: Session = Depe
     if item is None:
         raise HTTPException(status_code=404, detail="User not found")
     return templates.TemplateResponse("modificarUsuario.html.jinja", {"request": request, "item": item})
-
-
-
-
 
 
 # Iniciar sesión
@@ -159,7 +155,8 @@ async def create_producto_post(
                         id_artesano: int = Form(...), 
                         id_tipo: int = Form(...), 
                         nombre: str = Form(...), 
-                        descripcion: str = Form(...), 
+                        descripcion: str = Form(...),
+                        cantidad_disponible: str = Form(...),
                         categoria: str = Form(...), 
                         dimensiones: str = Form(...), 
                         peso: float = Form(...),
@@ -172,6 +169,7 @@ async def create_producto_post(
                               id_tipo=int(id_tipo),
                               nombre=nombre,
                               descripcion=descripcion,
+                              cantidad_disponible=cantidad_disponible,
                               categoria=categoria, 
                               dimensiones=dimensiones,
                               imagen=imagenpath, 
@@ -187,34 +185,34 @@ async def create_producto_post(
 @app.post("/product/update/", response_class=HTMLResponse)
 async def update_producto_post(request: Request, 
                           id_producto: int = Form(...),
+                          id_artesano: int = Form(...), 
                           nombre: str = Form(...), 
                           descripcion: str = Form(...), 
+                          cantidad_disponible: str = Form(...),
                           categoria: str = Form(...), 
                           dimensiones: str = Form(...), 
                           peso: str = Form(...), 
                           id_tipo: str = Form(...), 
+                          imagen: UploadFile = File(...),
                           db: Session = Depends(get_db)):
+    imagenpath = save_upload_file(imagen, UPLOAD_DIR)
+    print("Imagen path: ", imagenpath)
     product_update = schemas.ProductUpdate(
-        id_producto=id_producto,
-        nombre=nombre, descripcion=descripcion, categoria=categoria,
-        dimensiones=dimensiones, peso=peso, id_tipo=id_tipo
+        id_producto=id_producto, id_artesano=id_artesano,
+        nombre=nombre, descripcion=descripcion, cantidad_disponible=cantidad_disponible,categoria=categoria,
+        dimensiones=dimensiones, peso=peso, id_tipo=id_tipo, imagen=imagenpath, 
     )
     crudProducto.update_product(db=db, product_id=id_producto, product=product_update)
     products = crudProducto.get_products(db)
+
+    for product in products:
+        print("Id:", product.id_producto)
+        print("Nombre:", product.nombre)
     return templates.TemplateResponse("listaProducto.html.jinja", {"request": request, "Products": products})
 
 
-@app.post("/type_product/update/", response_class=HTMLResponse)
-async def update_tipo_producto_post(
-    request: Request, 
-    id_tipo: int = Form(...),  
-    nombre: str = Form(...), 
-    db: Session = Depends(get_db)
-):
-    type_update = schemas.TypeUpdate(id_tipo=id_tipo, nombre=nombre)
-    crudTipoProducto.update_type_product(db=db, type_id=id_tipo, type=type_update)
-    types = crudTipoProducto.get_types(db)
-    return templates.TemplateResponse("listaTipoProducto.html.jinja", {"request": request, "typesProducts": types})
+
+
 
 
 @app.post("/product/delete/{product_id}/", response_class=HTMLResponse)
@@ -230,10 +228,12 @@ async def create_producto_template(request: Request):
     return templates.TemplateResponse("crearProducto.html.jinja", {"request": request})
 
  
+
 @app.get("/product/update/{product_id}/", response_class=HTMLResponse)
 async def update_producto_template(request: Request, product_id: int, db: Session = Depends(get_db)):
-    products = crudProducto.get_product_by_id(db, product_id)
-    return templates.TemplateResponse("modificarProducto.html.jinja", {"request": request, "Products": products})
+    product = crudProducto.get_product_by_id(db, product_id)
+    return templates.TemplateResponse("modificarProducto.html.jinja", {"request": request, "product": product})
+
 
 @app.get("/product/list/", response_class=HTMLResponse, name="read_productos")
 async def read_productos(request: Request, db: Session = Depends(get_db)):
@@ -256,7 +256,8 @@ async def create_resena_post(#current_user: Annotated[schemas.ReviewBase, Depend
                         id_producto: str= Form(...),
                         fecha_invencion: str= Form(...),
                         creador: str= Form(...),
-                        anios_produccion: str= Form(...), anecdotas: str= Form(...),
+                        anios_produccion: str= Form(...), 
+                        anecdotas: str= Form(...),
                         db: Session = Depends(get_db)):
 
     review = schemas.ReviewCreate(
@@ -266,7 +267,7 @@ async def create_resena_post(#current_user: Annotated[schemas.ReviewBase, Depend
                               anios_produccion=anios_produccion,
                               anecdotas=anecdotas
                             )
-    crudResena.create_resena(db, resena= review)
+    crudResena.create_resena(db, review= review)
     reviews = crudResena.get_resenas(db)
 
     print('Lista resenas:', reviews)
@@ -284,6 +285,14 @@ async def create_resena_template(request: Request):
 async def update_resena_template(request: Request, review_id: int, db: Session = Depends(get_db)):
     reviews = crudResena.get_resena_by_id(db, review_id)
     return templates.TemplateResponse("modificarResena.html.jinja", {"request": request, "Reviews": reviews})
+
+
+
+@app.get("/review/list", response_class=HTMLResponse, name="read_reviews")
+async def read_reviews(request: Request, db: Session = Depends(get_db)):
+    reviews = crudResena.get_resenas(db)
+    print('Lista reseñas get:', reviews)
+    return templates.TemplateResponse("listaResena.html.jinja", {"request": request, "Reviews": reviews})
 
 
 @app.post("/review/update/", response_class=HTMLResponse)
@@ -310,8 +319,6 @@ async def delete_resena(request: Request, review_id: int, db: Session = Depends(
     reviews = crudResena.get_resenas(db)
     return RedirectResponse("listaResena.html.jinja",{"request": request, "Reviews": reviews})
 
-
-
 #Tipo Producto
 @app.post("/type_product/create/", response_model=schemas.TypeProductBase)
 async def create_tipo_producto_post(
@@ -331,7 +338,7 @@ async def create_tipo_producto_post(
         print("Nombre:", type.nombre)
     return templates.TemplateResponse("listaTipoProducto.html.jinja", {"request": request, "typesProducts": types})
 
-@app.get("/type_product/list", response_class=HTMLResponse, name="read_items")
+@app.get("/type_product/list", response_class=HTMLResponse, name="read_tipos")
 async def read_tipos(request: Request, db: Session = Depends(get_db)):
     types = crudTipoProducto.get_types(db)
     print('Lista tipos get:', types)
@@ -370,83 +377,12 @@ async def update_tipo_producto_post(
 async def create_tipo_producto_template(request: Request):
     return templates.TemplateResponse("crearTipoProducto.html.jinja", {"request": request})
 
-
-
-
-@app.get("/pedidos/", response_class=HTMLResponse)
+#Pedido
+@app.get("/order/list", response_class=HTMLResponse, name="read_pedidos")
 async def read_pedidos(request: Request, db: Session = Depends(get_db)):
-    pedidos = crudpedidos.get_pedidos(db)
-    return templates.TemplateResponse("pedido_list.html", {"request": request, "pedidos": pedidos})
-
-@app.get("/pedido/create/", response_class=HTMLResponse)
-async def create_pedido_form(request: Request):
-    return templates.TemplateResponse("pedido_create.html", {"request": request})
-
-@app.post("/pedido/create/", response_class=HTMLResponse)
-async def create_pedido(
-    request: Request,
-    id_cliente: int = Form(...),
-    fecha_pedido: date = Form(...),
-    cantidad_productos: int = Form(...),
-    metodo_env: str = Form(...),
-    estado: str = Form(...),
-    db: Session = Depends(get_db)
-):
-    pedido = schemas.PedidoCreate(
-        id_cliente=id_cliente,
-        fecha_pedido=fecha_pedido,
-        cantidad_productos=cantidad_productos,
-        metodo_env=metodo_env,
-        estado=estado
-    )
-    crudpedidos.create_pedido(db=db, pedido=pedido)
-    return RedirectResponse("/pedidos/", status_code=HTTP_303_SEE_OTHER)
-
-@app.get("/pedido/{pedido_id}/", response_class=HTMLResponse)
-async def read_pedido(request: Request, pedido_id: int, db: Session = Depends(get_db)):
-    pedido = crudpedidos.get_pedido(db, pedido_id=pedido_id)
-    if pedido is None:
-        raise HTTPException(status_code=404, detail="Pedido not found")
-    return templates.TemplateResponse("pedido_detail.html", {"request": request, "pedido": pedido})
-
-@app.get("/pedido/edit/{pedido_id}/", response_class=HTMLResponse)
-async def edit_pedido_form(request: Request, pedido_id: int, db: Session = Depends(get_db)):
-    pedido = crudpedidos.get_pedido(db, pedido_id=pedido_id)
-    if pedido is None:
-        raise HTTPException(status_code=404, detail="Pedido not found")
-    return templates.TemplateResponse("pedido_edit.html", {"request": request, "pedido": pedido})
-
-@app.post("/pedido/edit/{pedido_id}/", response_class=HTMLResponse)
-async def edit_pedido(
-    request: Request,
-    pedido_id: int,
-    id_cliente: int = Form(...),
-    fecha_pedido: date = Form(...),
-    cantidad_productos: int = Form(...),
-    metodo_env: str = Form(...),
-    estado: str = Form(...),
-    db: Session = Depends(get_db)
-):
-    pedido_update = schemas.PedidoUpdate(
-        id_cliente=id_cliente,
-        fecha_pedido=fecha_pedido,
-        cantidad_productos=cantidad_productos,
-        metodo_env=metodo_env,
-        estado=estado
-    )
-    updated_pedido = crudpedidos.update_pedido(db=db, pedido_id=pedido_id, pedido=pedido_update)
-    if updated_pedido is None:
-        raise HTTPException(status_code=404, detail="Pedido not found")
-    return RedirectResponse("/pedidos/", status_code=HTTP_303_SEE_OTHER)
-
-@app.post("/pedido/delete/{pedido_id}/", response_class=HTMLResponse)
-async def delete_pedido(request: Request, pedido_id: int, db: Session = Depends(get_db)):
-    deleted_pedido = crudpedidos.delete_pedido(db=db, pedido_id=pedido_id)
-    if deleted_pedido is None:
-        raise HTTPException(status_code=404, detail="Pedido not found")
-    return RedirectResponse("/pedidos/", status_code=HTTP_303_SEE_OTHER)
-    
-###############################
+orders = crudTipoProducto.get_types(db)
+print('Ordenes:', orders)
+return templates.TemplateResponse("listaPedidoArtesano.html.jinja", {"request": request, "Orders": orders})
 
 
 @app.post("/token", response_model=schemas.Token)
