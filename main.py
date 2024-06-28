@@ -15,7 +15,9 @@ from typing import Annotated, Optional, Union
 import shutil
 import os
 import uuid
+auth_handler = AuthHandler()
 from datetime import datetime, timedelta
+
 
 
 # Crear todas las tablas en la base de datos
@@ -38,7 +40,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
 
 
 @app.post("/usuario/create/", response_model=schemas.UserBase)
@@ -380,13 +381,9 @@ async def update_tipo_producto_post(
 async def create_tipo_producto_template(request: Request):
     return templates.TemplateResponse("crearTipoProducto.html.jinja", {"request": request})
 
-
-
-
 #Pedido
 @app.get("/order/list", response_class=HTMLResponse, name="read_pedidos")
 async def read_pedidos(request: Request, db: Session = Depends(get_db)):
     orders = crudTipoProducto.get_types(db)
     print('Ordenes:', orders)
     return templates.TemplateResponse("listaPedidoArtesano.html.jinja", {"request": request, "Orders": orders})
-
