@@ -423,3 +423,4 @@ async def actualizar_perfil_usuario(
     if usuario is None:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     return RedirectResponse("/perfil_usuario/", status_code=HTTP_303_SEE_OTHER)
+

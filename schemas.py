@@ -13,7 +13,7 @@ class UserBase(BaseModel):
     contrasena: str
 
 
-"""class UserCreate(UserBase):
+class UserCreate(UserBase):
    pass
 
 class UserUpdate(UserBase):
@@ -23,7 +23,7 @@ class User(UserBase):
     id_usuario: int
 
     class Config:
-        orm_mode = True"""
+        orm_mode = True
 
 class UsuarioBase(BaseModel):
     nombre: str
