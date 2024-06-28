@@ -52,19 +52,21 @@ class Usuario(UsuarioBase):
     class Config:
         orm_mode = True
 
+"""
 class Token(BaseModel):
     access_token: str
     token_type: str
 
 class TokenData(BaseModel):
     email: Optional[str] = None
-
+"""
 #productoooo
 class ProductBase(BaseModel):
     id_artesano: int
-    id_tipo: str
+    id_tipo: int
     nombre: str
     descripcion: str
+    cantidad_disponible: int
     categoria: str
     dimensiones: str
     peso: float
@@ -74,11 +76,10 @@ class ProductCreate(ProductBase):
     pass
 
 class ProductUpdate(ProductBase):
-    pass
-
-class Product(ProductBase):
     id_producto: int
 
+class Product(ProductBase):
+    
     class Config:
         orm_mode = True
 
@@ -86,17 +87,19 @@ class Product(ProductBase):
 class ReviewBase(BaseModel):
     id_usuario: int
     id_producto: int
-    calificacion: int
-    comentario: str
+    fecha_invencion: date
+    anios_produccion: int
+    creador:str
+    anecdotas:str
+
 
 class ReviewCreate(ReviewBase):
     pass
 
 class ReviewUpdate(ReviewBase):
-    pass
+    id_resena:int
 
 class Review(ReviewBase):
-    id_review: int
 
     class Config:
         orm_mode = True
@@ -107,6 +110,18 @@ class PedidoBase(BaseModel):
     cantidad_productos: int
     metodo_env: str
     estado: str
+
+
+    class Config:
+        orm_mode = True
+
+class PedidoBase(BaseModel):
+    id_cliente: int
+    fecha_pedido: date
+    cantidad_productos: int
+    metodo_env: str
+    estado: str
+
 
 class PedidoCreate(PedidoBase):
     pass
@@ -135,8 +150,24 @@ class DetallePedidoUpdate(DetallePedidoBase):
 class DetallePedido(DetallePedidoBase):
     id_detalle: int
 
+
+#Tipo
+
+class TypeProductBase(BaseModel):
+    nombre: str
+
+class TypeCreate(TypeProductBase):
+    pass
+
+class TypeUpdate(TypeProductBase):
+    id_tipo: int
+
+class TypeProduct(TypeProductBase):
+
+
     class Config:
         orm_mode = True
+
 
 class PedidoProductoBase(BaseModel):
     id_pedido: int
@@ -155,4 +186,4 @@ class PedidoProducto(PedidoProductoBase):
 
     class Config:
         orm_mode = True
-#code
+
