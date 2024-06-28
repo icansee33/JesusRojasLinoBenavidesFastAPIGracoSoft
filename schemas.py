@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel
 from datetime import date
 
@@ -12,7 +13,7 @@ class UserBase(BaseModel):
     contrasena: str
 
 
-class UserCreate(UserBase):
+"""class UserCreate(UserBase):
    pass
 
 class UserUpdate(UserBase):
@@ -22,9 +23,44 @@ class User(UserBase):
     id_usuario: int
 
     class Config:
+        orm_mode = True"""
+
+class UsuarioBase(BaseModel):
+    nombre: str
+    apellido: str
+    correo_electronico: str
+    direccion: str
+    fecha_nacimiento: date
+    tipo_usuario: str
+
+class UsuarioCrear(UsuarioBase):
+    contrasena: str
+    cedula_identidad: int
+
+class UsuarioActualizar(BaseModel):
+    nombre: Optional[str] = None
+    apellido: Optional[str] = None
+    correo_electronico: Optional[str] = None
+    contrasena: Optional[str] = None
+    direccion: Optional[str] = None
+    fecha_nacimiento: Optional[date] = None
+    tipo_usuario: Optional[str] = None
+
+class Usuario(UsuarioBase):
+    cedula_identidad: int
+
+    class Config:
         orm_mode = True
 
+"""
+class Token(BaseModel):
+    access_token: str
+    token_type: str
 
+class TokenData(BaseModel):
+    email: Optional[str] = None
+"""
+#productoooo
 class ProductBase(BaseModel):
     id_artesano: int
     id_tipo: int
