@@ -383,3 +383,10 @@ async def create_tipo_producto_template(request: Request):
 
 
 
+#Pedido
+@app.get("/order/list", response_class=HTMLResponse, name="read_pedidos")
+async def read_pedidos(request: Request, db: Session = Depends(get_db)):
+    orders = crudTipoProducto.get_types(db)
+    print('Ordenes:', orders)
+    return templates.TemplateResponse("listaPedidoArtesano.html.jinja", {"request": request, "Orders": orders})
+

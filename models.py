@@ -70,7 +70,7 @@ class Pedido(Base):
     id_cliente = Column(Integer, ForeignKey('usuarios.cedula_identidad'), nullable=False)
     fecha_pedido = Column(Date, nullable=False)
     cantidad_productos = Column(Integer, nullable=False)
-    metodo_env = Column(String(50), nullable=False)
+    metodo_envio = Column(String(50), nullable=False)
     estado = Column(String(50), nullable=False)
 
     cliente = relationship("Usuario", back_populates="pedidos")
