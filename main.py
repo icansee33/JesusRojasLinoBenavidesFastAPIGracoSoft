@@ -1,12 +1,12 @@
-from fastapi import Depends, FastAPI, File, Request, HTTPException, Form, UploadFile
+from fastapi import Depends, FastAPI, File, Request, HTTPException, Form, UploadFile, status
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-import crudUsuario, crudProducto, crudResena, crudTipoProducto, models, schemas
+import crudUsuario, models, schemas,  crudpedidos, auth
+import crudProducto, crudResena, crudTipoProducto, schemas
 from seguridad.manejarToken import ACCESS_TOKEN_EXPIRE_MINUTES, authenticate_user, create_access_token, get_current_user
-import crudUsuario, models, schemas, crudProducto
 from sqlApp.database import SessionLocal, engine
 from starlette.responses import RedirectResponse, HTMLResponse
 from starlette.status import HTTP_303_SEE_OTHER, HTTP_400_BAD_REQUEST
@@ -99,10 +99,6 @@ async def update_usuario_form(request: Request, item_id: int, db: Session = Depe
     if item is None:
         raise HTTPException(status_code=404, detail="User not found")
     return templates.TemplateResponse("modificarUsuario.html.jinja", {"request": request, "item": item})
-
-
-
-
 
 
 # Iniciar sesión
@@ -386,3 +382,44 @@ async def read_pedidos(request: Request, db: Session = Depends(get_db)):
     orders = crudTipoProducto.get_types(db)
     print('Ordenes:', orders)
     return templates.TemplateResponse("listaPedidoArtesano.html.jinja", {"request": request, "Orders": orders})
+
+
+@app.post("/token", response_model=schemas.Token)
+async def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()):
+    usuario = auth.autenticar_usuario(db, form_data.username, form_data.password)
+    if not usuario:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Usuario o contraseña incorrectos",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = auth.crear_token_acceso(
+        data={"sub": usuario.correo_electronico}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@app.get("/perfil_usuario/", response_class=HTMLResponse)
+async def perfil_usuario(request: Request, db: Session = Depends(get_db), usuario_actual: models.Usuario = Depends(auth.obtener_usuario_activo_actual)):
+    return templates.TemplateResponse("perfil.html.jinja", {"request": request, "usuario": usuario_actual})
+
+@app.post("/perfil_usuario/update/")
+async def actualizar_perfil_usuario(
+    request: Request,
+    nombre: str = Form(...),
+    correo: str = Form(...),
+    contrasena: str = Form(...),
+    cedula: str = Form(...),
+    db: Session = Depends(get_db),
+    usuario_actual: models.Usuario = Depends(auth.obtener_usuario_activo_actual)
+):
+    usuario_actualizado = schemas.UsuarioActualizar(
+        nombre=nombre,
+        correo_electronico=correo,
+        contrasena=contrasena,
+        cedula_identidad=cedula
+    )
+    usuario = crudUsuario.actualizar_usuario(db=db, user_id=usuario_actual.cedula_identidad, usuario=usuario_actualizado)
+    if usuario is None:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    return RedirectResponse("/perfil_usuario/", status_code=HTTP_303_SEE_OTHER)

@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
 from datetime import datetime
-from schemas import Respuesta
 import crudUsuario as usuario_service
 import crudProducto as producto_service
 from sqlalchemy.orm import Session
