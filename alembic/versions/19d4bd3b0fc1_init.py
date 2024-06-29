@@ -1,8 +1,8 @@
 """init
 
-Revision ID: 50914892f53d
+Revision ID: 19d4bd3b0fc1
 Revises: 
-Create Date: 2024-06-28 11:16:27.738976
+Create Date: 2024-06-29 05:22:07.872767
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '50914892f53d'
+revision: str = '19d4bd3b0fc1'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -44,12 +44,12 @@ def upgrade() -> None:
     )
     op.create_table('pedidos',
     sa.Column('id_pedido', sa.Integer(), nullable=False),
-    sa.Column('id_cliente', sa.Integer(), nullable=False),
+    sa.Column('cedula_identidad', sa.Integer(), nullable=False),
     sa.Column('fecha_pedido', sa.Date(), nullable=False),
     sa.Column('cantidad_productos', sa.Integer(), nullable=False),
     sa.Column('metodo_envio', sa.String(length=50), nullable=False),
     sa.Column('estado', sa.String(length=50), nullable=False),
-    sa.ForeignKeyConstraint(['id_cliente'], ['usuarios.cedula_identidad'], ),
+    sa.ForeignKeyConstraint(['cedula_identidad'], ['usuarios.cedula_identidad'], ),
     sa.PrimaryKeyConstraint('id_pedido')
     )
     op.create_table('productos',

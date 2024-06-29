@@ -1,0 +1,32 @@
+{% extends 'baseCliente.html.jinja' %}
+
+{% block content %}
+<h1>{% block title %} Realice sus pedidos {% endblock %}</h1>
+    
+<table id="formcenter">
+    <tr>
+        <th>ID de Producto</th>
+        <th>Nombre</th>
+        <th>Descripcion</th>
+        <th>Categoria</th>
+        <th>Dimensiones</th>
+        <th>Peso</th>
+        <th>Imagen</th>
+        <th>Acciones</th>
+    </tr>
+    {% for product in Products %}
+    <tr>
+        <td>{{ product.id_producto }}</td>
+        <td>{{ product.nombre }}</td>
+        <td>{{ product.descripcion }}</td>
+        <td>{{ product.categoria }}</td>
+        <td>{{ product.dimensiones }}</td>
+        <td>{{ product.peso }}</td>
+        <td><img src="/{{ product.imagen }}" alt="{{ product.nombre }}" width="100"></td>
+        <td>
+            <button value="Solicitar" onclick="window.location.href='/order/create/{product.id_producto}' ;" >Solicitar</button> 
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

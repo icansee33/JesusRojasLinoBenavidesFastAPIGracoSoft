@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-import crudUsuario, models, schemas,  crudPedido, auth
+import crudUsuario, models, schemas, crudPedido, crudDetallePedido, crudEncargo, auth
 import crudProducto, crudResena, crudTipoProducto, schemas
 from seguridad.manejarToken import ACCESS_TOKEN_EXPIRE_MINUTES, authenticate_user, create_access_token, get_current_user
 from sqlApp.database import SessionLocal, engine
@@ -16,7 +16,6 @@ import shutil
 import os
 import uuid
 from datetime import date, datetime, timedelta
-
 
 
 
@@ -373,13 +372,97 @@ async def create_tipo_producto_template(request: Request):
 
 #Pedido
 @app.get("/order/list", response_class=HTMLResponse, name="read_pedidos")
-async def read_pedidos(request: Request, db: Session = Depends(get_db)):
-    orders = crudTipoProducto.get_types(db)
+async def read_pedidos_artesano(request: Request, db: Session = Depends(get_db)):
+    orders = crudPedido.get_orders(db)
     print('Ordenes:', orders)
     return templates.TemplateResponse("listaPedidoArtesano.html.jinja", {"request": request, "Orders": orders})
 
+@app.get("/artisan/orders", response_class=HTMLResponse)
+async def get_artisano_orders(request: Request, db: Session = Depends(get_db)):
+    orders = crudPedido.get_orders(db)
+    return templates.TemplateResponse("listaPedidoArtesano.html.jinja", {"request": request, "Orders": orders})
 
-@app.post("/token")
+@app.get("/artisan/order/update/{id_pedido}", response_class=HTMLResponse)
+async def update_order_template(request: Request, id_pedido: int, db: Session = Depends(get_db)):
+    order = crudPedido.get_order(db, id_pedido)
+    return templates.TemplateResponse("updatePedidoArtesano.html.jinja", {"request": request, "Order": order})
+
+@app.post("/artisan/order/update/{id_pedido}", response_model=schemas.Pedido)
+async def update_order(
+    request: Request,
+    id_pedido: int,
+    fecha_envio: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    order_update = schemas.PedidoUpdate(fecha_envio=datetime.strptime(fecha_envio, '%Y-%m-%d'))
+    updated_order = crudPedido.update_order(db, order_id=id_pedido, order=order_update)
+    
+    # Crear un registro en la tabla intermedia DetallesPedido (ejemplo)
+    detalle_pedido = schemas.DetallePedidoCreate(
+        id_pedido=id_pedido,
+        cantidad=updated_order.cantidad_productos,
+        precio_unitario=10.0  
+    )
+    crudDetallePedido.create_detalle_pedido(db, detalle_pedido)
+
+    orders = crudPedido.get_orders(db)
+    return templates.TemplateResponse("listaPedidoArtesano.html.jinja", {"request": request, "Orders": orders})
+
+@app.get("/order/list", response_class=HTMLResponse, name="read_pedidos")
+async def read_productos_pedidos_cliente(request: Request, db: Session = Depends(get_db)):
+    orders = crudProducto.get_products(db)
+    print('Ordenes:', orders)
+    return templates.TemplateResponse("catalagoPedidoCliente.html.jinja", {"request": request, "Orders": orders})
+
+
+@app.post("/order/create/{id_producto}", response_model=schemas.Pedido)
+async def create_order(
+    request: Request,
+    id_producto: int,
+    id_cliente: str = Form(...),
+    cantidad_productos: int = Form(...),
+    metodo_envio: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    # Obtenemos la fecha actual
+    fecha_pedido = datetime.now()
+
+    # Creamos el nuevo pedido
+    nuevo_pedido = models.Pedido(
+        id_cliente=id_cliente,
+        id_producto=id_producto,
+        cantidad_productos=cantidad_productos,
+        metodo_envio=metodo_envio,
+        estado="Solicitado",
+        fecha_pedido=fecha_pedido
+    )
+    
+    # Guardamos el nuevo pedido en la base de datos
+    crudPedido.create_order(db=db, order=nuevo_pedido)
+    
+    # Obtenemos la lista de productos para mostrar en la plantilla
+    products = crudProducto.get_products(db)
+
+    return templates.TemplateResponse("catalogoPedidoCliente.html.jinja", {"request": request, "Products": products})
+
+
+@app.get("/order/create/{id_producto}", response_class=HTMLResponse)
+async def create_pedido_cliente_template(
+    request: Request,
+    id_producto: int,
+    db: Session = Depends(get_db)
+):
+    product = crudProducto.get_product_by_id(db, id_producto=id_producto)
+    return templates.TemplateResponse("crearPedidoCliente.html.jinja", {"request": request, "product": product})
+
+
+
+
+
+
+
+
+@app.post("/token", response_model=schemas.Token)
 async def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()):
     usuario = auth.autenticar_usuario(db, form_data.username, form_data.password)
     if not usuario:
@@ -393,10 +476,6 @@ async def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth
         data={"sub": usuario.correo_electronico}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
-
-
-
-
 
 
 @app.get("/perfil_usuario/", response_class=HTMLResponse)
@@ -439,5 +518,68 @@ async def update_perfil_usuario(
                                       )
     if usuario is None:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
-    return RedirectResponse("/perfil_usuario/", status_code=HTTP_303_SEE_OTHER)
+    return templates.TemplateResponse("perfil.html.jinja", {"request": request})
 
+"""
+
+
+#Encargo
+@app.post("/charge/create", response_class=HTMLResponse)
+async def create_charge_post(request: Request, 
+                             id_producto: int = Form(...),
+                             cedula_identidad: int = Form(...),
+                             descripcion_encargo: str = Form(...),
+                             fecha_encargo: date = Form(...),
+                             metodo_envio: str = Form(...),
+                             estado_encargo: str = Form(...),
+                             db: Session = Depends(get_db)):
+    charge = schemas.ChargeCreate(
+        id_producto=id_producto,
+        cedula_identidad=cedula_identidad,
+        descripcion_encargo=descripcion_encargo,
+        fecha_encargo=fecha_encargo,
+        metodo_envio=metodo_envio,
+        estado_encargo=estado_encargo
+    )
+    crudEncargo.create_charge(db=db, charge=charge)
+    charges = crudEncargo.get_charge(db)
+    return templates.TemplateResponse("listaEncargoArtesano.html.jinja", {"request": request, "Orders": charges})
+
+
+@app.get("/charge/list", response_class=HTMLResponse)
+async def read_charges(request: Request, db: Session = Depends(get_db)):
+    charges = crudEncargo.get_charge(db=db)
+    return templates.TemplateResponse("listaEncargoArtesano.html.jinja", {"request": request, "Orders": charges})
+
+@app.get("/charge/update/{charge_id}", response_class=HTMLResponse)
+async def update_charge_template(charge_id: int, request: Request, db: Session = Depends(get_db)):
+    charge = crudEncargo.get_charge_by_id(db=db, charge_id=charge_id)
+    return templates.TemplateResponse("modificarEncargoArtesano.html.jinja", {"request": request, "charge": charge})
+
+@app.post("/charge/update/{charge_id}", response_class=HTMLResponse)
+async def update_charge_post(
+                            request: Request,
+                            charge_id:  str = Form(...),
+                            descripcion_encargo: str = Form(...),
+                            metodo_envio: str = Form(...),
+                            estado_encargo: str = Form(...), 
+                            db: Session = Depends(get_db)):
+    charge_update = schemas.ChargeUpdate(
+        id_encargo=charge_id,
+        descripcion_encargo=descripcion_encargo,
+        metodo_envio=metodo_envio,
+        estado_encargo=estado_encargo
+    )
+    crudEncargo.update_charge(db=db, charge_id=charge_id, charge=charge_update)
+    charges = crudEncargo.get_charge(db)
+    return templates.TemplateResponse("listaEncargoArtesano.html.jinja", {"request": request, "Orders": charges})
+
+@app.post("/charge/delete/{charge_id}", response_class=HTMLResponse)
+async def delete_charge(charge_id: int, request: Request, db: Session = Depends(get_db)):
+    crudEncargo.delete_charge(db=db, charge_id=charge_id)
+    charges = crudEncargo.get_charge(db)
+    return templates.TemplateResponse("listaEncargoArtesano.html.jinja", {"request": request, "Orders": charges})
+
+@app.get("/charge/create", response_class=HTMLResponse)
+async def create_charge_template(request: Request):
+    return templates.TemplateResponse("crearEncargoArtesano.html.jinja", {"request": request})"""

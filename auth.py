@@ -22,7 +22,7 @@ def obtener_hash_contrasena(password):
     return pwd_context.hash(password)
 
 def autenticar_usuario(db: Session, email: str, password: str):
-    usuario = crudUsuario.obtener_usuario_por_email(db, email)
+    usuario = crudUsuario.get_user_by_email(db, email)
     if not usuario:
         return False
     if not verificar_contrasena(password, usuario.contrasena):
@@ -39,6 +39,19 @@ def crear_token_acceso(data: dict, expires_delta: timedelta = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
+"""
+def crear_token_acceso(data: dict, expires_delta: Union[timedelta, None] = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+"""
+
+
 async def obtener_usuario_actual(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     credenciales_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -52,10 +65,12 @@ async def obtener_usuario_actual(db: Session = Depends(get_db), token: str = Dep
             raise credenciales_exception
     except JWTError:
         raise credenciales_exception
-    usuario = crudUsuario.obtener_usuario_por_email(db, email)
+    usuario = crudUsuario.get_user_by_email(db, email)
     if usuario is None:
         raise credenciales_exception
     return usuario
 
 async def obtener_usuario_activo_actual(usuario_actual: models.Usuario = Depends(obtener_usuario_actual)):
     return usuario_actual
+
+

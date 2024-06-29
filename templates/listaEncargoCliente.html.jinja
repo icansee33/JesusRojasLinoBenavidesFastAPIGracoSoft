@@ -1,0 +1,26 @@
+{% extends 'baseCliente.html.jinja' %}
+
+{% block content %}
+<h1>{% block title %} Mis Encargos {% endblock %}</h1>
+    
+<table id="formcenter">
+    <tr>
+        <th>ID Encargo</th>
+        <th>ID Producto</th>
+        <th>Descripción</th>
+        <th>Fecha</th>
+        <th>Método de Envío</th>
+        <th>Estado</th>
+    </tr>
+    {% for encargo in charges %}
+    <tr>
+        <td>{{ encargo.id_encargo }}</td>
+        <td>{{ encargo.id_producto }}</td>
+        <td>{{ encargo.descripcion_encargo }}</td>
+        <td>{{ encargo.fecha_encargo }}</td>
+        <td>{{ encargo.metodo_envio }}</td>
+        <td>{{ encargo.estado_encargo }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

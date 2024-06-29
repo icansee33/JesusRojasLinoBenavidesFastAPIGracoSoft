@@ -67,7 +67,7 @@ class Resena(Base):
 class Pedido(Base):
     __tablename__ = 'pedidos'
     id_pedido = Column(Integer, primary_key=True)
-    id_cliente = Column(Integer, ForeignKey('usuarios.cedula_identidad'), nullable=False)
+    cedula_identidad = Column(Integer, ForeignKey('usuarios.cedula_identidad'), nullable=False)
     fecha_pedido = Column(Date, nullable=False)
     cantidad_productos = Column(Integer, nullable=False)
     metodo_envio = Column(String(50), nullable=False)

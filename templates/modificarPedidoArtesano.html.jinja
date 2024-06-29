@@ -1,0 +1,21 @@
+{% extends 'baseArtesano.html.jinja' %}
+
+{% block content %}
+<h1>{% block title %} Actualizar Pedido {% endblock %}</h1>
+
+<form action="/artisan/order/update/{{ Order.id_pedido }}" method="post">
+    <div>
+        <label for="id_pedido">ID del Pedido: </label><br>
+        <input type="text" class="form-control" name="id_pedido" value="{{ Order.id_pedido }}" readonly>
+        <br>
+    </div>
+
+    <div>
+        <label for="fecha_envio">Fecha de Envío: </label><br>
+        <input type="date" class="form-control" name="fecha_envio" required>
+        <br>
+    </div>
+
+    <input type="submit" value="Actualizar">
+</form>
+{% endblock %}
