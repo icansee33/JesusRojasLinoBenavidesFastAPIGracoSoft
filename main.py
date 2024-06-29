@@ -458,10 +458,6 @@ async def create_pedido_cliente_template(
 
 
 
-
-
-
-
 @app.post("/token", response_model=schemas.Token)
 async def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()):
     usuario = auth.autenticar_usuario(db, form_data.username, form_data.password)
