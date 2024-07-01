@@ -1,28 +1,46 @@
-from pydantic import BaseModel
+from typing import Optional
+from pydantic import BaseModel, EmailStr
 from datetime import date
 
-class UserBase(BaseModel):
-    cedula_identidad: str
-    nombre: str
-    apellido: str
-    fecha_nacimiento: date
+class UsuarioBase(BaseModel):
+    cedula: str
+    nombres: str
+    apellidos: str
     direccion: str
-    correo_electronico: str
-    tipo_usuario: str
-    contrasena: str
+    nacimiento: date
+    correo: EmailStr
+    tipo_id: int
 
+class UsuarioCrear(UsuarioBase):
+    contraseña: str
 
-class UserCreate(UserBase):
-   pass
-
-class UserUpdate(UserBase):
-    contrasena: str
-
-class User(UserBase):
-    id_usuario: int
+class Usuario(UsuarioBase):
+    id: int
 
     class Config:
         orm_mode = True
+
+class UsuarioActualizar(BaseModel):
+    nombres: Optional[str]
+    apellidos: Optional[str]
+    direccion: Optional[str]
+    nacimiento: Optional[date]
+    correo: Optional[EmailStr]
+    tipo_id: Optional[int]
+    contraseña: Optional[str]
+
+class Respuesta(BaseModel):
+    ok: bool
+    mensaje: str
+    data: Optional[Usuario]
+
+    class Config:
+        arbitrary_types_allowed = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
 
 #producto
 class ProductBase(BaseModel):
@@ -66,5 +84,5 @@ class Review(ReviewBase):
     class Config:
         orm_mode = True
 
-
-###
+class iten for
+    
