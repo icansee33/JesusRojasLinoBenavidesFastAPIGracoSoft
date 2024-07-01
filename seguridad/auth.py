@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
@@ -7,6 +7,8 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from dependencias import get_db  # Change this import
 import crudUsuario, models, schemas
 from sqlApp.database import SessionLocal
+from typing import Union
+
 
 SECRET_KEY = "your_secret_key"  # Cambia esto por una clave secreta más segura
 ALGORITHM = "HS256"
@@ -29,17 +31,7 @@ def autenticar_usuario(db: Session, email: str, password: str):
         return False
     return usuario
 
-def crear_token_acceso(data: dict, expires_delta: timedelta = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
 
-"""
 def crear_token_acceso(data: dict, expires_delta: Union[timedelta, None] = None):
     to_encode = data.copy()
     if expires_delta:
@@ -49,9 +41,28 @@ def crear_token_acceso(data: dict, expires_delta: Union[timedelta, None] = None)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
-"""
 
 
+def buscar_usuario(db: Session, user_id: str):
+    user = db.query(models.Usuario).filter(models.Usuario.cedula_identidad == user_id).first()
+    if user is None:
+        return {"ok": False, "mensaje": "User not found"}
+    usuario = schemas.User(
+        cedula_identidad = user.cedula_identidad,
+        nombre = user.nombre,
+        apellido = user.apellido,
+        direccion=user.direccion,
+        fecha_nacimiento=user.fecha_nacimiento,
+        correo_electronico=user.correo_electronico,
+        contrasena=user.contrasena,
+        tipo_usuario=user.tipo_usuario
+    )
+    return {"ok": True, "mensaje": "User found", "data": usuario}
+
+
+
+
+#Esto es para el perfil
 async def obtener_usuario_actual(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     credenciales_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -70,7 +81,8 @@ async def obtener_usuario_actual(db: Session = Depends(get_db), token: str = Dep
         raise credenciales_exception
     return usuario
 
+
+
 async def obtener_usuario_activo_actual(usuario_actual: models.Usuario = Depends(obtener_usuario_actual)):
     return usuario_actual
-
 

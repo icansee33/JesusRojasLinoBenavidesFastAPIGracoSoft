@@ -1,14 +1,15 @@
-from fastapi import Depends, FastAPI, File, Request, HTTPException, Form, UploadFile, status
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi import Depends, FastAPI, File, Request, HTTPException, Form, Response, UploadFile, status, APIRouter
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.middleware import Middleware
+from starlette.middleware.sessions import SessionMiddleware
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-import crudUsuario, models, schemas, crudPedido, crudDetallePedido, crudEncargo, auth
+import crudUsuario, models, schemas, crudPedido, crudDetallePedido, crudEncargo, seguridad.auth as auth
 import crudProducto, crudResena, crudTipoProducto, schemas
-from seguridad.manejarToken import ACCESS_TOKEN_EXPIRE_MINUTES, authenticate_user, create_access_token, get_current_user
-from sqlApp.database import SessionLocal, engine
-from starlette.responses import RedirectResponse, HTMLResponse
+from seguridad.auth import ACCESS_TOKEN_EXPIRE_MINUTES, autenticar_usuario, crear_token_acceso, obtener_usuario_activo_actual
+from fastapi.responses import RedirectResponse, HTMLResponse
 from starlette.status import HTTP_303_SEE_OTHER, HTTP_400_BAD_REQUEST
 from dependencias import get_db  # Change this import
 from typing import Annotated, Optional, Union
@@ -16,21 +17,25 @@ import shutil
 import os
 import uuid
 from datetime import date, datetime, timedelta
-
-
+from sqlApp.database import SessionLocal, engine
 
 # Crear todas las tablas en la base de datos
 models.Base.metadata.create_all(bind=engine)
 
-# Inicializar la aplicación FastAPI
-app = FastAPI()
+# Inicializar la aplicación FastAPI con el middleware de sesión
+app = FastAPI(middleware=[
+    Middleware(SessionMiddleware, secret_key="your_secret_key")
+])
 
 # Montar el directorio estático para servir archivos estáticos
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-#Ya 
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
 # Configurar Jinja2 para la renderización de plantillas
 templates = Jinja2Templates(directory="templates")
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="iniciar_sesion_post")
 
 # Dependencia para obtener la sesión de base de datos
 def get_db():
@@ -72,27 +77,49 @@ async def create_usuario_post(request: Request,
     return templates.TemplateResponse("crearUsuario.html.jinja", {"request": request})
 
 
-
 @app.get("/usuario/create/", response_class=HTMLResponse)
 async def create_usuario_template(request: Request):
     print("Usuario get: ", )
     return templates.TemplateResponse("crearUsuario.html.jinja", {"request": request})
 
 
-
 @app.get("/", response_class=HTMLResponse)
 async def home_no_iniciado(request: Request, db: Session = Depends(get_db)):
     return templates.TemplateResponse("homeNoIniciado.html.jinja", {"request": request})
 
+@app.get("/base/artesano/", response_class=HTMLResponse)
+async def base_artesano_iniciado(request: Request, db: Session = Depends(get_db)):
+    return templates.TemplateResponse("baseArtesano.html.jinja", {"request": request})
 
-@app.get("/user/{user_id}", response_class=HTMLResponse)
-async def read_usuario(request: Request, item_id: int, db: Session = Depends(get_db)):
-    item = crudUsuario.get_user_by_ci(db, item_id)
-    if item is None:
+@app.get("/base/cliente/", response_class=HTMLResponse)
+async def base_cliente_iniciado(request: Request, db: Session = Depends(get_db)):
+    return templates.TemplateResponse("baseCliente.html.jinja", {"request": request})
+
+
+"""
+@app.get('/home/artesano', response_class=HTMLResponse)
+def home_artesano(request: Request):
+    user_type = request.session.get('user_type')
+    if user_type == 1:
+        return templates.TemplateResponse("HArtesano.html", {"request": request})
+    return RedirectResponse(url='/usuarios/iniciarsesion.html', status_code=status.HTTP_303_SEE_OTHER)
+
+@app.get('/home/cliente', response_class=HTMLResponse)
+def home_cliente(request: Request):
+    user_type = request.session.get('user_type')
+    if user_type == 2:
+        return templates.TemplateResponse("HCliente.html", {"request": request})
+    return RedirectResponse(url='/usuarios/iniciarsesion.html', status_code=status.HTTP_303_SEE_OTHER)
+
+"""
+
+
+
+async def read_usuario(request: Request, user_id: int, db: Session = Depends(get_db)):
+    user = crudUsuario.get_user_by_ci(db, user_id)
+    if user is None:
         raise HTTPException(status_code=404, detail="User not found")
-    return templates.TemplateResponse("perfilUsuario.html", {"request": request, "item": item})
-
-
+    return templates.TemplateResponse("perfilUsuario.html", {"request": request, "item": user})
 
 
 # Iniciar sesión
@@ -100,24 +127,63 @@ async def read_usuario(request: Request, item_id: int, db: Session = Depends(get
 async def iniciar_sesion_template(request: Request):
     return templates.TemplateResponse("iniciarSesion.html.jinja", {"request": request})
 
-@app.post("/iniciarsesion/", response_class=HTMLResponse)
-async def iniciar_sesion_post(
-    request: Request,
-    correo_electronico: str = Form(...), 
-    contrasena: str = Form(...), 
-    db: Session = Depends(get_db),
-):
-    user = authenticate_user(db, correo_electronico, contrasena)
+
+@app.post('/iniciar_sesion', response_class=HTMLResponse)
+async def iniciar_sesion_post(request: Request,
+                   correo_electronico: str = Form(...),               
+                   contrasena: str = Form(...), 
+                   db: Session = Depends(get_db)):
+    user = autenticar_usuario(db, correo_electronico, contrasena)
     if not user:
         raise HTTPException(
-            status_code=400,
-            detail="Incorrect username or password",
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Error, Incorrect username or password',
+            headers={"WWW-Authenticate": "Bearer"}
         )
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.correo_electronico}, expires_delta=access_token_expires
+    tiempo_expiracion = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    nombre= f'{user.nombre} {user.apellido}'
+    token_acceso = auth.crear_token_acceso(
+        data={'cedula_identidad': user.cedula_identidad,
+              'nombre': nombre,
+              'tipo_usuario': user.tipo_usuario},
+        expires_delta=tiempo_expiracion
     )
-    return templates.TemplateResponse("baseArtesano.html.jinja", {"request": request, "token": access_token, "user": user})
+    request.session['cedula_identidad'] = user.cedula_identidad
+    request.session['tipo_usuario'] = user.tipo_usuario
+    
+    if user.tipo_usuario == "Cliente":
+        return RedirectResponse(url="/base/cliente/", status_code=status.HTTP_303_SEE_OTHER)
+    elif user.tipo_usuario == "Artesano":
+        return RedirectResponse(url="/base/artesano/", status_code=status.HTTP_303_SEE_OTHER)
+    else:
+        print("user", user.tipo_usuario )
+        return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@app.middleware("http")
+async def create_auth_header(request: Request, call_next):
+    if ("Authorization" not in request.headers 
+        and "Authorization" in request.cookies):
+        access_token = request.cookies["Authorization"]
+        request.headers.__dict__["_list"].append(
+            (
+                "authorization".encode(),
+                 f"Bearer {access_token}".encode(),
+            )
+        )
+    elif ("Authorization" not in request.headers 
+        and "Authorization" not in request.cookies): 
+        request.headers.__dict__["_list"].append(
+            (
+                "authorization".encode(),
+                 f"Bearer 12345".encode(),
+            )
+        )
+        
+    response = await call_next(request)
+    return response
+
+
 
 
 #Producto
@@ -141,11 +207,9 @@ def save_upload_file(upload_file: UploadFile, upload_dir: str):
 
     return file_path
 
-
 @app.post("/product/create/", response_model=schemas.ProductBase)
 async def create_producto_post(
                         request: Request, 
-                        id_artesano: int = Form(...), 
                         id_tipo: int = Form(...), 
                         nombre: str = Form(...), 
                         descripcion: str = Form(...),
@@ -155,6 +219,10 @@ async def create_producto_post(
                         peso: float = Form(...),
                         imagen: UploadFile = File(...),
                         db: Session = Depends(get_db)):
+    id_artesano = request.session.get('cedula_identidad')
+    if not id_artesano:
+        raise HTTPException(status_code=401, detail="Unauthorized. Please log in as an artesano.")
+    
     imagenpath = save_upload_file(imagen, UPLOAD_DIR)
     print("Imagen path: ", imagenpath)
     product = schemas.ProductCreate(
@@ -174,11 +242,10 @@ async def create_producto_post(
         print("Nombre:", product.nombre)
     return templates.TemplateResponse("listaProducto.html.jinja", {"request": request, "Products": products})
 
-
 @app.post("/product/update/", response_class=HTMLResponse)
 async def update_producto_post(request: Request, 
+                          id_artesano: int = Form(...),
                           id_producto: int = Form(...),
-                          id_artesano: int = Form(...), 
                           nombre: str = Form(...), 
                           descripcion: str = Form(...), 
                           cantidad_disponible: str = Form(...),
@@ -475,7 +542,7 @@ async def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth
 
 
 @app.get("/perfil_usuario/", response_class=HTMLResponse)
-async def perfil_usuario(request: Request, db: Session = Depends(get_db), usuario_actual: models.Usuario = Depends(auth.obtener_usuario_activo_actual)):
+async def perfil_usuario(request: Request, db: Session = Depends(get_db), usuario_actual: models.Usuario = Depends(obtener_usuario_activo_actual)):
     return templates.TemplateResponse("perfil.html.jinja", {"request": request, "usuario": usuario_actual})
 
 @app.post("/perfil_usuario/update/")
