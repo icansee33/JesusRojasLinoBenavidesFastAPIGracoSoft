@@ -7,11 +7,12 @@
     <tr>
         <th>ID de Producto</th>
         <th>Nombre</th>
-        <th>Descripcion</th>
-        <th>Categoria</th>
+        <th>Descripción</th>
+        <th>Categoría</th>
         <th>Dimensiones</th>
         <th>Peso</th>
         <th>Imagen</th>
+        <th>Acciones</th>
     </tr>
     {% for product in Products %}
     <tr>
@@ -22,16 +23,11 @@
         <td>{{ product.dimensiones }}</td>
         <td>{{ product.peso }}</td>
         <td><img src="/{{product.imagen}}" alt="{{ product.nombre }}" width="100"></td>
-
-         <td> 
-            <button value="Modificar" onclick="window.location.href='/product/update/{{product.id_producto}}' ;" >Modificar</button> 
-
-
+        <td> 
+            <button onclick="window.location.href='/product/update/{{product.id_producto}}';">Modificar</button> 
             <form action="/product/delete/{{ product.id_producto }}" method="post" style="display:inline;">
-                <input type="hidden" class="form-control" name="id_producto"  value="{{product.id_producto}}">
-                <button type="submit">Delete</button>
+                <button type="submit">Eliminar</button>
             </form>
-
         </td>
     </tr>
     {% endfor %}

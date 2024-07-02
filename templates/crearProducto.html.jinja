@@ -13,36 +13,50 @@
         <input type="text" class="form-control" name="nombre" placeholder="Nombre del Producto" required>
         <br>
     </div>
+
     <div>
         <label for="descripcion">Descripción: </label><br>
         <textarea class="form-control" name="descripcion" placeholder="Descripción" required></textarea>
         <br>
     </div>
+
     <div>
         <label for="categoria">Categoría: </label><br>
         <input type="text" class="form-control" name="categoria" placeholder="categoria" required>
         <br>
     </div>
+    
     <div>
-        <label for="id_tipo">Id del Tipo: </label><br>
-        <input type="text" class="form-control" name="id_tipo" placeholder="id_tipo" required>
+    <label for="id_tipo">Tipo de Producto:</label>
+    <br>
+        <div>
+        <select name="id_tipo" id="id_tipo" required>
+            {% for type in types %}
+                <option value="{{ type.id_tipo }}">{{ type.nombre }}</option>
+            {% endfor %}
+        </select>
         <br>
+        </div>
     </div>
+
     <div>
         <label for="dimensiones">Dimensiones: </label><br>
         <input type="text" class="form-control" name="dimensiones" placeholder="Dimensiones" required>
         <br>
     </div>
+
     <div>
         <label for="cantidad_disponible">Cantidad disponible: </label><br>
         <input type="number" class="form-control" name="cantidad_disponible" placeholder="cantidad_disponible" required>
         <br>
     </div>
+
     <div>
         <label for="peso">Peso: </label><br>
         <input type="number"class="form-control" name="peso" placeholder="Peso" required>
         <br>
     </div>
+    
     <div>
         <label for="imagen">Imagen:</label>
         <input type="file" id="imagen" name="imagen" required><br>

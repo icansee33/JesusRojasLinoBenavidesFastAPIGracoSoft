@@ -19,6 +19,7 @@ import uuid
 from datetime import date, datetime, timedelta
 from sqlApp.database import SessionLocal, engine
 
+
 # Crear todas las tablas en la base de datos
 models.Base.metadata.create_all(bind=engine)
 
@@ -260,7 +261,7 @@ async def update_producto_post(request: Request,
     product_update = schemas.ProductUpdate(
         id_producto=id_producto, id_artesano=id_artesano,
         nombre=nombre, descripcion=descripcion, cantidad_disponible=cantidad_disponible,categoria=categoria,
-        dimensiones=dimensiones, peso=peso, id_tipo=id_tipo, imagen=imagenpath, 
+        dimensiones=dimensiones, peso=peso, id_tipo=id_tipo, imagenpath=imagenpath, 
     )
     crudProducto.update_product(db=db, product_id=id_producto, product=product_update)
     products = crudProducto.get_products(db)
@@ -272,27 +273,17 @@ async def update_producto_post(request: Request,
 
 
 
-
-
-
-@app.post("/product/delete/{product_id}/", response_class=HTMLResponse)
-async def delete_tipo_producto(request: Request, product_id: int, db: Session = Depends(get_db)):
-    print("Id producto: ", product_id)  
-    crudProducto.delete_product(db=db, product_id=product_id)
-    products = crudProducto.get_products(db)
-    return templates.TemplateResponse("listaProducto.html.jinja", {"request": request, "Products": products})
-
-
 @app.get("/product/create/", response_class=HTMLResponse)
-async def create_producto_template(request: Request):
-    return templates.TemplateResponse("crearProducto.html.jinja", {"request": request})
+async def create_producto_template(request: Request, db: Session = Depends(get_db)):
+    types = crudTipoProducto.get_types(db) 
+    return templates.TemplateResponse("crearProducto.html.jinja", {"request": request, "types": types})
 
- 
 
 @app.get("/product/update/{product_id}/", response_class=HTMLResponse)
 async def update_producto_template(request: Request, product_id: int, db: Session = Depends(get_db)):
     product = crudProducto.get_product_by_id(db, product_id)
-    return templates.TemplateResponse("modificarProducto.html.jinja", {"request": request, "product": product})
+    types = crudTipoProducto.get_types(db) 
+    return templates.TemplateResponse("modificarProducto.html.jinja", {"request": request, "product": product, "types": types})
 
 
 @app.get("/product/list/", response_class=HTMLResponse, name="read_productos")
@@ -307,6 +298,15 @@ async def read_productos(request: Request, db: Session = Depends(get_db)):
             print("Product ID:", product.id_producto)
             print("Product Name:", product.nombre)
     return templates.TemplateResponse("listaProducto.html.jinja", {"request": request, "Products": products})
+
+
+
+@app.post("/product/delete/{product_id}/", response_class=HTMLResponse)
+async def delete_producto(request: Request, product_id: int, db: Session = Depends(get_db)):
+    crudProducto.delete_product(db=db, product_id=product_id)
+    return RedirectResponse(url='/product/list/', status_code=303)
+
+
 
 
 #Resenas

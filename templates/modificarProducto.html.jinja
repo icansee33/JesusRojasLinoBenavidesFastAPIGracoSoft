@@ -20,9 +20,16 @@
     </div>
 
     <div>
-        <label for="id_tipo">Tipo de producto: </label><br>
-        <input type="text" class="form-control" name="id_tipo" placeholder="id_tipo" required value="{{product.id_tipo}}">
+    <label for="id_tipo">Tipo de Producto:</label>
+    <br>
+        <div>
+        <select name="id_tipo" id="id_tipo" required>
+            {% for type in types %}
+                <option value="{{ type.id_tipo }}">{{ type.nombre }}</option>
+            {% endfor %}
+        </select>
         <br>
+        </div>
     </div>
 
     <div>
@@ -57,7 +64,7 @@
 
     <div>
         <label for="imagen">Imagen:</label>
-        <input type="file" id="imagen" name="imagen"><br><br>
+        <input type="file" class="form-control"  placeholder="imagen" name="imagen"><br>
     </div>
 
     <input type="submit" value="Submit">
