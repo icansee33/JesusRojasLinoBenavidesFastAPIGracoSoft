@@ -19,7 +19,7 @@ def create_order(db: Session, order: schemas.PedidoCreate):
     db.refresh(db_order)
     return db_order
 
-def get_order(db: Session, order_id: int):
+def get_order_by_id(db: Session, order_id: int):
     return db.query(models.Pedido).filter(models.Pedido.id_pedido == order_id).first()
 
 def get_orders(db: Session, skip: int = 0, limit: int = 10):

@@ -71,11 +71,12 @@ class Pedido(Base):
     fecha_pedido = Column(Date, nullable=False)
     cantidad_productos = Column(Integer, nullable=False)
     metodo_envio = Column(String(50), nullable=False)
+    precio_unitario = Column(Double(10, 2), nullable=False)
+    monto_total = Column(Double(10, 2), nullable=False)
     estado = Column(String(50), nullable=False)
 
     cliente = relationship("Usuario", back_populates="pedidos")
     detalles = relationship("DetallePedido", back_populates="pedido")
-    productos = relationship("PedidoProducto", back_populates="pedido")
 
 class Encargo(Base):
     __tablename__ = 'encargos'
@@ -90,16 +91,6 @@ class Encargo(Base):
     producto = relationship("Producto", back_populates="encargos")
     cliente = relationship("Usuario", back_populates="encargos")
 
-class DetallePedido(Base):
-    __tablename__ = 'detalles_pedido'
-    id_detalle = Column(Integer, primary_key=True)
-    id_pedido = Column(Integer, ForeignKey('pedidos.id_pedido'), nullable=False)
-    id_producto = Column(Integer, ForeignKey('productos.id_producto'), nullable=False)
-    cantidad = Column(Integer, nullable=False)
-    precio_unitario = Column(Double(10, 2), nullable=False)
-
-    pedido = relationship("Pedido", back_populates="detalles")
-    producto = relationship("Producto", back_populates="detalles")
 
 class Calificacion(Base):
     __tablename__ = 'calificaciones'
@@ -117,14 +108,3 @@ class Rol(Base):
     nombre = Column(String(50), primary_key=True)
 
     usuarios = relationship("Usuario", back_populates="rol")
-
-class PedidoProducto(Base):
-    __tablename__ = 'pedido_producto'
-    id_pedido_producto = Column(Integer, primary_key=True)
-    id_pedido = Column(Integer, ForeignKey('pedidos.id_pedido'), nullable=False)
-    id_producto = Column(Integer, ForeignKey('productos.id_producto'), nullable=False)
-    cant_unidades = Column(Integer, nullable=False)
-    total = Column(Double(10, 2), nullable=False)
-
-    pedido = relationship("Pedido", back_populates="productos")
-    producto = relationship("Producto", back_populates="pedidos")

@@ -310,74 +310,98 @@ async def delete_producto(request: Request, product_id: int, db: Session = Depen
 
 
 #Resenas
+# Debugging to check the type and content of reviews
 @app.post("/resena/create/", response_model=schemas.ReviewBase)
-async def create_resena_post(#current_user: Annotated[schemas.ReviewBase, Depends(get_current_user)],
-                        request: Request, 
-                        id_producto: str= Form(...),
-                        fecha_invencion: str= Form(...),
-                        creador: str= Form(...),
-                        anios_produccion: str= Form(...), 
-                        anecdotas: str= Form(...),
-                        db: Session = Depends(get_db)):
+async def create_resena_post(request: Request, 
+                             id_producto: str= Form(...),
+                             fecha_invencion: str= Form(...),
+                             creador: str= Form(...),
+                             anios_produccion: str= Form(...), 
+                             anecdotas: str= Form(...),
+                             db: Session = Depends(get_db)):
+    # Convert fecha_invencion to date
+    fecha_invencion_date = datetime.strptime(fecha_invencion, '%Y-%m-%d').date()
 
     review = schemas.ReviewCreate(
-                              id_producto=id_producto,
-                              fecha_invencion=fecha_invencion,
-                              creador=creador,
-                              anios_produccion=anios_produccion,
-                              anecdotas=anecdotas
-                            )
-    crudResena.create_resena(db, review= review)
+        id_producto=id_producto,
+        fecha_invencion=fecha_invencion_date,
+        creador=creador,
+        anios_produccion=anios_produccion,
+        anecdotas=anecdotas
+    )
+    crudResena.create_resena(db, review=review)
     reviews = crudResena.get_resenas(db)
 
-    print('Lista resenas:', reviews)
+    # Print type and content of reviews
+    print('Type of reviews:', type(reviews))
+    print('Content of reviews:', reviews)
+
     for review in reviews:
+        print("Type of review:", type(review))
         print("Id:", review.id_resena)
         print("Creador:", review.creador)
+
     return templates.TemplateResponse("listaResena.html.jinja", {"request": request, "Reviews": reviews})
-    
+
+# Other parts of your code remain the same
+
 
 @app.get("/review/create/", response_class=HTMLResponse)
 async def create_resena_template(request: Request):
     return templates.TemplateResponse("crearResena.html.jinja", {"request": request})
 
-@app.get("/review/update/{review_id}/", response_class=HTMLResponse)
-async def update_resena_template(request: Request, review_id: int, db: Session = Depends(get_db)):
-    reviews = crudResena.get_resena_by_id(db, review_id)
-    return templates.TemplateResponse("modificarResena.html.jinja", {"request": request, "Reviews": reviews})
+
+@app.post("/review/delete/{review_id}/", response_class=HTMLResponse)
+async def delete_review(request: Request, review_id: int, db: Session = Depends(get_db)):
+    print("Id reseña: ", review_id)  
+    crudResena.delete_resena(db=db, review_id=review_id)
+    reviews = crudResena.get_resenas(db)
+    return templates.TemplateResponse("listaResena.html.jinja", {"request": request, "Reviews": reviews})
 
 
-
-@app.get("/review/list", response_class=HTMLResponse, name="read_reviews")
+@app.get("/review/list/", response_class=HTMLResponse, name="read_reviews")
 async def read_reviews(request: Request, db: Session = Depends(get_db)):
     reviews = crudResena.get_resenas(db)
     print('Lista reseñas get:', reviews)
     return templates.TemplateResponse("listaResena.html.jinja", {"request": request, "Reviews": reviews})
 
+"""
 
 @app.post("/review/update/", response_class=HTMLResponse)
 async def update_resena_post(request: Request, 
-                        resena_id: int = Form(...), 
+                        id_resena: int = Form(...), 
                         id_producto: int = Form(...), 
                         fecha_invencion: str = Form(...), 
                         creador: str = Form(...), 
                         anios_produccion: str = Form(...), 
                         anecdotas: str = Form(...), 
                         db: Session = Depends(get_db)):
+
+    fecha_invencion_date = datetime.strptime(fecha_invencion, '%Y-%m-%d').date()
+
     review_update = schemas.ReviewUpdate(
-        id_producto=id_producto, fecha_invencion=fecha_invencion, creador=creador,
+        id_resena=id_resena, id_producto=id_producto, fecha_invencion=fecha_invencion_date, creador=creador,
         anios_produccion=anios_produccion, anecdotas=anecdotas
     )
-    crudResena.update_resena(db=db, resena_id=resena_id, resena=review_update)
+    crudResena.update_resena(db=db, review_id=id_resena, review=review_update)
+
     reviews = crudResena.get_resenas(db)
+    for review in reviews:
+        print("Id:", review.id_resena)
+        print("Producto:", review.producto)
     return RedirectResponse("listaResena.html.jinja", {"request": request, "Reviews": reviews})
 
 
-@app.post("/review/delete/{review_id}/", response_class=HTMLResponse)
-async def delete_resena(request: Request, review_id: int, db: Session = Depends(get_db)):
-    crudResena.delete_resena(db=db, review_id=review_id)
-    reviews = crudResena.get_resenas(db)
-    return RedirectResponse("listaResena.html.jinja",{"request": request, "Reviews": reviews})
+@app.get("/review/update/{review_id}/", response_class=HTMLResponse)
+async def update_resena_template(request: Request, review_id: int, db: Session = Depends(get_db)):
+    review = db.query(models.Resena).filter(models.Resena.id_resena == review_id).first()
+    if not review:
+        raise HTTPException(status_code=404, detail="Review not found")
+    return templates.TemplateResponse("modificarResena.html.jinja", {"request": request, "review": review})
+
+"""
+
+
 
 #Tipo Producto
 @app.post("/type_product/create/", response_model=schemas.TypeProductBase)
@@ -397,6 +421,7 @@ async def create_tipo_producto_post(
         print("Id:", type.id_tipo)
         print("Nombre:", type.nombre)
     return templates.TemplateResponse("listaTipoProducto.html.jinja", {"request": request, "typesProducts": types})
+
 
 @app.get("/type_product/list", response_class=HTMLResponse, name="read_tipos")
 async def read_tipos(request: Request, db: Session = Depends(get_db)):
@@ -444,36 +469,14 @@ async def read_pedidos_artesano(request: Request, db: Session = Depends(get_db))
     print('Ordenes:', orders)
     return templates.TemplateResponse("listaPedidoArtesano.html.jinja", {"request": request, "Orders": orders})
 
-@app.get("/artisan/orders", response_class=HTMLResponse)
-async def get_artisano_orders(request: Request, db: Session = Depends(get_db)):
-    orders = crudPedido.get_orders(db)
-    return templates.TemplateResponse("listaPedidoArtesano.html.jinja", {"request": request, "Orders": orders})
 
 @app.get("/artisan/order/update/{id_pedido}", response_class=HTMLResponse)
-async def update_order_template(request: Request, id_pedido: int, db: Session = Depends(get_db)):
+async def update_pedido_template(request: Request, id_pedido: int, db: Session = Depends(get_db)):
     order = crudPedido.get_order(db, id_pedido)
     return templates.TemplateResponse("updatePedidoArtesano.html.jinja", {"request": request, "Order": order})
 
-@app.post("/artisan/order/update/{id_pedido}", response_model=schemas.Pedido)
-async def update_order(
-    request: Request,
-    id_pedido: int,
-    fecha_envio: str = Form(...),
-    db: Session = Depends(get_db)
-):
-    order_update = schemas.PedidoUpdate(fecha_envio=datetime.strptime(fecha_envio, '%Y-%m-%d'))
-    updated_order = crudPedido.update_order(db, order_id=id_pedido, order=order_update)
-    
-    # Crear un registro en la tabla intermedia DetallesPedido (ejemplo)
-    detalle_pedido = schemas.DetallePedidoCreate(
-        id_pedido=id_pedido,
-        cantidad=updated_order.cantidad_productos,
-        precio_unitario=10.0  
-    )
-    crudDetallePedido.create_detalle_pedido(db, detalle_pedido)
 
-    orders = crudPedido.get_orders(db)
-    return templates.TemplateResponse("listaPedidoArtesano.html.jinja", {"request": request, "Orders": orders})
+
 
 @app.get("/order/list", response_class=HTMLResponse, name="read_pedidos")
 async def read_productos_pedidos_cliente(request: Request, db: Session = Depends(get_db)):
@@ -488,6 +491,7 @@ async def create_order(
     id_producto: int,
     id_cliente: str = Form(...),
     cantidad_productos: int = Form(...),
+
     metodo_envio: str = Form(...),
     db: Session = Depends(get_db)
 ):
@@ -513,13 +517,13 @@ async def create_order(
     return templates.TemplateResponse("catalogoPedidoCliente.html.jinja", {"request": request, "Products": products})
 
 
-@app.get("/order/create/{id_producto}", response_class=HTMLResponse)
+@app.get("/order/create/{id_product}", response_class=HTMLResponse)
 async def create_pedido_cliente_template(
     request: Request,
     id_producto: int,
     db: Session = Depends(get_db)
 ):
-    product = crudProducto.get_product_by_id(db, id_producto=id_producto)
+    product = crudPedido.get_order_by_id(db, id_product=id_producto)
     return templates.TemplateResponse("crearPedidoCliente.html.jinja", {"request": request, "product": product})
 
 
