@@ -1,19 +1,25 @@
 from typing import Optional
+from pydantic import BaseModel, EmailStr
 from pydantic import BaseModel
 from datetime import date
 from sqlalchemy import Double
 
 
-class UserBase(BaseModel):
-    cedula_identidad: str
-    nombre: str
-    apellido: str
-    fecha_nacimiento: date
+class UsuarioBase(BaseModel):
+    cedula: str
+    nombres: str
+    apellidos: str
     direccion: str
-    correo_electronico: str
-    tipo_usuario: str
-    contrasena: str
+    nacimiento: date
+    correo: EmailStr
+    tipo_id: int
 
+class UsuarioCrear(UsuarioBase):
+    contraseña: str
+
+
+class Usuario(UsuarioBase):
+    id: int
 
 class UserCreate(UserBase):
    pass
@@ -22,14 +28,69 @@ class UserUpdate(UserBase):
     contrasena: str
 
 class User(UserBase):
+
+    id_usuario: int
+
+
+    class Config:
+        orm_mode = True"""
+
+class UsuarioBase(BaseModel):
+    nombre: str
+    apellido: str
+    correo_electronico: str
+    direccion: str
+    fecha_nacimiento: date
+    tipo_usuario: str
+
+class UsuarioCrear(UsuarioBase):
+    contrasena: str
+    cedula_identidad: int
+
+class UsuarioActualizar(BaseModel):
+    nombre: Optional[str] = None
+    apellido: Optional[str] = None
+    correo_electronico: Optional[str] = None
+    contrasena: Optional[str] = None
+    direccion: Optional[str] = None
+    fecha_nacimiento: Optional[date] = None
+    tipo_usuario: Optional[str] = None
+
+class Usuario(UsuarioBase):
+
     cedula_identidad: int
 
     class Config:
         orm_mode = True
 
+class UsuarioActualizar(BaseModel):
+    nombres: Optional[str]
+    apellidos: Optional[str]
+    direccion: Optional[str]
+    nacimiento: Optional[date]
+    correo: Optional[EmailStr]
+    tipo_id: Optional[int]
+    contraseña: Optional[str]
+
+class Respuesta(BaseModel):
+    ok: bool
+    mensaje: str
+    data: Optional[Usuario]
+
+    class Config:
+        arbitrary_types_allowed = True
+
+
+"""
+
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+
+#producto
 
 class TokenData(BaseModel):
     email: Optional[str] = None
@@ -135,7 +196,6 @@ class ChargoBase(BaseModel):
     metodo_envio: str
     estado_encargo: str
 
-
 class ChargeCreate(ChargoBase):
     pass
 
@@ -144,6 +204,25 @@ class ChargeUpdate(ChargoBase):
 
 class Pedido(ChargoBase):
     id_encargo: int
+
+    class Config:
+        orm_mode = True
+
+##########CALIFICACIONES##########
+
+from pydantic import BaseModel
+
+class CalificacionBase(BaseModel):
+    id_producto: int
+    id_cliente: int
+    calificacion: int
+    comentario: str
+
+class CalificacionCreate(CalificacionBase):
+    pass
+
+class Calificacion(CalificacionBase):
+    id_calificacion: int
 
     class Config:
         orm_mode = True
@@ -157,3 +236,4 @@ class Respuesta(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+

@@ -7,7 +7,6 @@
     <title>Perfil de Usuario</title>
 </head>
 <body>
-
     <header>
         <img src="logo.png" alt="Logo">
         <h1>Perfil de Usuario</h1>
@@ -41,8 +40,11 @@
     <script>
         document.getElementById('editButton').addEventListener('click', function() {
             const inputs = document.querySelectorAll('#formcenter input');
+            inputs.forEach(input => input.disabled = !input.disabled);    });
+
             inputs.forEach(input => input.disabled = !input.disabled);
         });
+
     </script>
 </body>
 </html>
