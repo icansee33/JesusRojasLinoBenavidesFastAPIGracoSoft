@@ -1,7 +1,8 @@
 from fastapi import Depends, FastAPI, File, Request, HTTPException, Form, UploadFile, status
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm, HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from jose import JWTError
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 import crudUsuario, models, schemas,  crudpedidos, auth
@@ -15,10 +16,15 @@ from typing import Annotated, Optional, Union
 import shutil
 import os
 import uuid
-auth_handler = AuthHandler() # type: ignore
-from datetime import datetime, timedelta
+from passlib.context import CryptContext
 
+from datetime import datetime, timedelta, timezone
 
+SECRET_KEY = "27A0D7C4CCCE76E6BE39225B7EEE8BD0EF890DE82D49E459F4C405C583080AB0"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 15
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+security = HTTPBearer()
 
 # Crear todas las tablas en la base de datos
 models.Base.metadata.create_all(bind=engine)
@@ -40,6 +46,17 @@ def get_db():
         yield db
     finally:
         db.close()
+
+class AuthHandler():
+    def decode_token(self, token: str):
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            return payload
+        except JWTError:
+            raise HTTPException(
+                status_code=401,
+                detail="No autorizado"
+            )
 
 
 @app.post("/usuario/create/", response_model=schemas.UserBase)
@@ -448,43 +465,42 @@ async def delete_pedido(request: Request, pedido_id: int, db: Session = Depends(
     
 ###############################
 
+def auth_wrapper(self, auth: HTTPAuthorizationCredentials = Depends(security)):
+        return self.decode_token(auth.credentials)
 
-@app.post("/token", response_model=schemas.Token)
-async def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()):
-    usuario = auth.autenticar_usuario(db, form_data.username, form_data.password)
-    if not usuario:
+def create_access_token(self, data: dict, expires_delta: timedelta = None):
+        to_encode = data.copy()
+        if expires_delta:
+            expire = datetime.now(timezone.utc) + expires_delta
+        else:
+            expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        to_encode.update({"exp": expire})
+        encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+        return encoded_jwt
+
+def get_hash_password(self, password: str):
+        return pwd_context.hash(password)
+
+def verify_password(self, plain_password: str, hashed_password: str):
+        return pwd_context.verify(plain_password, hashed_password)
+
+auth_handler = AuthHandler()
+
+@app.post('/token', response_model=schemas.Token)
+async def login_for_access_token(db: Session = Depends(get_db), form_data: schemas.):
+    user = db.query(models.Usuario).filter(models.Usuario.correo == form_data.email).first()
+    if not user or not auth_handler.verify_password(form_data.password, user.contraseña):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Usuario o contraseña incorrectos",
-            headers={"WWW-Authenticate": "Bearer"},
+            status_code=401,
+            detail="Correo o contraseña incorrectos"
         )
-    access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = auth.crear_token_acceso(
-        data={"sub": usuario.correo_electronico}, expires_delta=access_token_expires
-    )
+    access_token = auth_handler.create_access_token(data={"sub": user.correo})
     return {"access_token": access_token, "token_type": "bearer"}
 
-@app.get("/perfil_usuario/", response_class=HTMLResponse)
-async def perfil_usuario(request: Request, db: Session = Depends(get_db), usuario_actual: models.Usuario = Depends(auth.obtener_usuario_activo_actual)):
-    return templates.TemplateResponse("perfil.html.jinja", {"request": request, "usuario": usuario_actual})
-
-@app.post("/perfil_usuario/update/")
-async def actualizar_perfil_usuario(
-    request: Request,
-    nombre: str = Form(...),
-    correo: str = Form(...),
-    contrasena: str = Form(...),
-    cedula: str = Form(...),
-    db: Session = Depends(get_db),
-    usuario_actual: models.Usuario = Depends(auth.obtener_usuario_activo_actual)
-):
-    usuario_actualizado = schemas.UsuarioActualizar(
-        nombre=nombre,
-        correo_electronico=correo,
-        contrasena=contrasena,
-        cedula_identidad=cedula
-    )
-    usuario = crudUsuario.actualizar_usuario(db=db, user_id=usuario_actual.cedula_identidad, usuario=usuario_actualizado)
-    if usuario is None:
+@app.get('/perfil', response_model=schemas.Usuario)
+async def read_profile(auth: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
+    token_data = auth_handler.decode_token(auth.credentials)
+    user = db.query(models.Usuario).filter(models.Usuario.correo == token_data['sub']).first()
+    if user is None:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
-    return RedirectResponse("/perfil_usuario/", status_code=HTTP_303_SEE_OTHER)
+    return user

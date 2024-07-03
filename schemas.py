@@ -1,9 +1,6 @@
 from typing import Optional
-<<<<<<< HEAD
 from pydantic import BaseModel, EmailStr
-=======
 from pydantic import BaseModel
->>>>>>> 63a0bbf7860884724fbd5f7b8f18ce118d65d58a
 from datetime import date
 
 class UsuarioBase(BaseModel):
@@ -18,10 +15,10 @@ class UsuarioBase(BaseModel):
 class UsuarioCrear(UsuarioBase):
     contraseña: str
 
-<<<<<<< HEAD
+
 class Usuario(UsuarioBase):
     id: int
-=======
+
 """class UserCreate(UserBase):
    pass
 
@@ -30,7 +27,7 @@ class UserUpdate(UserBase):
 
 class User(UserBase):
     id_usuario: int
->>>>>>> 63a0bbf7860884724fbd5f7b8f18ce118d65d58a
+
 
     class Config:
         orm_mode = True"""
@@ -62,7 +59,6 @@ class Usuario(UsuarioBase):
     class Config:
         orm_mode = True
 
-<<<<<<< HEAD
 class UsuarioActualizar(BaseModel):
     nombres: Optional[str]
     apellidos: Optional[str]
@@ -80,14 +76,13 @@ class Respuesta(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-=======
+
 """
 >>>>>>> 63a0bbf7860884724fbd5f7b8f18ce118d65d58a
 class Token(BaseModel):
     access_token: str
     token_type: str
 
-<<<<<<< HEAD
 
 #producto
 =======
@@ -95,7 +90,6 @@ class TokenData(BaseModel):
     email: Optional[str] = None
 """
 #productoooo
->>>>>>> 63a0bbf7860884724fbd5f7b8f18ce118d65d58a
 class ProductBase(BaseModel):
     id_artesano: int
     id_tipo: int
@@ -203,10 +197,6 @@ class TypeProduct(TypeProductBase):
     class Config:
         orm_mode = True
 
-<<<<<<< HEAD
-class iten for
-    
-=======
 
 class PedidoProductoBase(BaseModel):
     id_pedido: int
@@ -226,4 +216,3 @@ class PedidoProducto(PedidoProductoBase):
     class Config:
         orm_mode = True
 
->>>>>>> 63a0bbf7860884724fbd5f7b8f18ce118d65d58a
