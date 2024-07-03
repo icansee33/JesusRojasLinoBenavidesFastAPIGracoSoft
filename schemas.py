@@ -216,3 +216,21 @@ class PedidoProducto(PedidoProductoBase):
     class Config:
         orm_mode = True
 
+##########CALIFICACIONES##########
+
+from pydantic import BaseModel
+
+class CalificacionBase(BaseModel):
+    id_producto: int
+    id_cliente: int
+    calificacion: int
+    comentario: str
+
+class CalificacionCreate(CalificacionBase):
+    pass
+
+class Calificacion(CalificacionBase):
+    id_calificacion: int
+
+    class Config:
+        orm_mode = True

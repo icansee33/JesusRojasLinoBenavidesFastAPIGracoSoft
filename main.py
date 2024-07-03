@@ -5,7 +5,7 @@ from fastapi.templating import Jinja2Templates
 from jose import JWTError
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-import crudUsuario, models, schemas,  crudpedidos, auth
+import crudUsuario, models, schemas,  crudpedidos, auth, crudCalificaciones
 import crudProducto, crudResena, crudTipoProducto, schemas
 from seguridad.manejarToken import ACCESS_TOKEN_EXPIRE_MINUTES, authenticate_user, create_access_token, get_current_user
 from sqlApp.database import SessionLocal, engine
@@ -486,7 +486,7 @@ def verify_password(self, plain_password: str, hashed_password: str):
 
 auth_handler = AuthHandler()
 
-@app.post('/token', response_model=schemas.Token)
+"""@app.post('/token', response_model=schemas.Token)
 async def login_for_access_token(db: Session = Depends(get_db), form_data: schemas.):
     user = db.query(models.Usuario).filter(models.Usuario.correo == form_data.email).first()
     if not user or not auth_handler.verify_password(form_data.password, user.contraseña):
@@ -503,4 +503,34 @@ async def read_profile(auth: HTTPAuthorizationCredentials = Depends(security), d
     user = db.query(models.Usuario).filter(models.Usuario.correo == token_data['sub']).first()
     if user is None:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
-    return user
+    return user"""
+
+
+##############CALIFICACIONES############
+@app.get("/calificar/{producto_id}", response_class=HTMLResponse)
+async def calificar(request: Request, producto_id: int, db: Session = Depends(get_db)):
+    product = crudProducto.get_product_by_id(db, producto_id)
+    if not product:
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
+    return templates.TemplateResponse("calificar.html.jinja", {"request": request, "product": product})
+
+@app.post("/submit_calificacion", response_class=HTMLResponse)
+async def submit_calificacion(request: Request, producto_id: int = Form(...), calificacion: int = Form(...), comentario: str = Form(...), db: Session = Depends(get_db)):
+    user_id = 1  # Aquí debes obtener el ID del usuario autenticado
+    calificacion_data = schemas.CalificacionCreate(
+        id_producto=producto_id,
+        id_cliente=user_id,
+        calificacion=calificacion,
+        comentario=comentario
+    )
+    crudCalificaciones.create_calificacion(db, calificacion_data)
+    return RedirectResponse(f"/listar_calificaciones/{producto_id}", status_code=HTTP_303_SEE_OTHER)
+
+@app.get("/listar_calificaciones/{producto_id}", response_class=HTMLResponse)
+async def listar_calificaciones(request: Request, producto_id: int, db: Session = Depends(get_db)):
+    product = crudProducto.get_product_by_id(db, producto_id)
+    calificaciones = crudCalificaciones.get_calificaciones_by_producto(db, producto_id)
+    return templates.TemplateResponse("listar_calificaciones.html.jinja", {"request": request, "product": product, "calificaciones": calificaciones})
+
+
+
