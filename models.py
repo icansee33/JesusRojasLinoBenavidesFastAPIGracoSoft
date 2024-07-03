@@ -49,7 +49,7 @@ class Producto(Base):
     encargos = relationship("Encargo", back_populates="producto")
     detalles = relationship("DetallePedido", back_populates="producto")
     calificaciones = relationship("Calificacion", back_populates="producto")
-    pedidos = relationship("PedidoProducto", back_populates="producto")
+    pedidos = relationship("Pedido", back_populates="producto")
 
 
 
@@ -67,6 +67,7 @@ class Resena(Base):
 class Pedido(Base):
     __tablename__ = 'pedidos'
     id_pedido = Column(Integer, primary_key=True)
+    id_producto= Column(Integer, ForeignKey('productos.id_producto'), nullable=False)
     cedula_identidad = Column(Integer, ForeignKey('usuarios.cedula_identidad'), nullable=False)
     fecha_pedido = Column(Date, nullable=False)
     cantidad_productos = Column(Integer, nullable=False)
@@ -76,7 +77,7 @@ class Pedido(Base):
     estado = Column(String(50), nullable=False)
 
     cliente = relationship("Usuario", back_populates="pedidos")
-    detalles = relationship("DetallePedido", back_populates="pedido")
+    producto = relationship("Producto", back_populates="pedidos")
 
 class Encargo(Base):
     __tablename__ = 'encargos'

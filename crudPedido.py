@@ -8,10 +8,12 @@ import models, schemas
 
 def create_order(db: Session, order: schemas.PedidoCreate):
     db_order = models.Pedido(
-        id_cliente=order.id_cliente,
+        cedula_identidad=order.cedula_identidad,
         fecha_pedido=order.fecha_pedido,
         cantidad_productos=order.cantidad_productos,
         metodo_envio=order.metodo_envio,
+        precio_unitario=order.precio_unitario,
+        monto_total=order.monto_total,
         estado=order.estado
     )
     db.add(db_order)
@@ -36,9 +38,11 @@ def update_order(db: Session, order_id: int, order: schemas.PedidoUpdate):
     db.refresh(db_order)
     return db_order
 
-def delete_order(db: Session, order_id: int):
-    db_order = get_order(db, order_id)
-    if db_order is None:
+
+def cancel_order(db: Session, product_id: int):
+    db_product = get_order_by_id(db, product_id)
+    if db_product is None:
         return None
-    db.delete(db_order)
+    db.delete(db_product)
     db.commit()
+    return db_product

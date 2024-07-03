@@ -81,28 +81,30 @@ class Review(ReviewBase):
 
 
 
+
 class PedidoBase(BaseModel):
-    cedula_identidad: int
+    id_producto: int
+    cedula_identidad: str
     fecha_pedido: date
     cantidad_productos: int
-    metodo_env: str
+    metodo_envio: str
     precio_unitario: Double
+    monto_total: Double
     estado: str
 
-  
 class PedidoCreate(PedidoBase):
     pass
 
-class PedidoUpdate(PedidoBase):
-    pass
+class PedidoUpdate(BaseModel):
+    id_producto: int
+    id_pedido: int
+
 
 class Pedido(PedidoBase):
     id_pedido: int
 
     class Config:
         orm_mode = True
-
-
 
 #Tipo
 
@@ -117,29 +119,6 @@ class TypeUpdate(TypeProductBase):
 
 class TypeProduct(TypeProductBase):
 
-
-    class Config:
-        orm_mode = True
-
-
-
-#pedido Maestro
-class PedidoBase(BaseModel):
-    id_cliente: int
-    fecha_pedido: date
-    cantidad_productos: int
-    metodo_envionv: str
-    estado: str
-
-
-class PedidoCreate(PedidoBase):
-    pass
-
-class PedidoUpdate(PedidoBase):
-    id_pedido: int
-
-class Pedido(PedidoBase):
-    id_pedido: int
 
     class Config:
         orm_mode = True
