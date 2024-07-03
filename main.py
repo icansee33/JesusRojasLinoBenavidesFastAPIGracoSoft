@@ -1,3 +1,4 @@
+
 from fastapi import Depends, FastAPI, File, Request, HTTPException, Form, Response, UploadFile, status, APIRouter
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from fastapi.staticfiles import StaticFiles
@@ -6,8 +7,7 @@ from fastapi.middleware import Middleware
 from starlette.middleware.sessions import SessionMiddleware
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-import crudUsuario, models, schemas, crudPedido, crudDetallePedido, crudEncargo, seguridad.auth as auth
-import crudProducto, crudResena, crudTipoProducto, schemas
+import crudUsuario, models, schemas, crudPedido, crudDetallePedido, crudEncargo, seguridad.auth as auth, crudResena, crudTipoProducto,crudProducto
 from seguridad.auth import ACCESS_TOKEN_EXPIRE_MINUTES, autenticar_usuario, crear_token_acceso, obtener_usuario_activo_actual
 from fastapi.responses import RedirectResponse, HTMLResponse
 from starlette.status import HTTP_303_SEE_OTHER, HTTP_400_BAD_REQUEST
@@ -16,9 +16,18 @@ from typing import Annotated, Optional, Union
 import shutil
 import os
 import uuid
-from datetime import date, datetime, timedelta
+
+from passlib.context import CryptContext
+
+from datetime import datetime, timedelta, timezone
 from sqlApp.database import SessionLocal, engine
 
+
+SECRET_KEY = "27A0D7C4CCCE76E6BE39225B7EEE8BD0EF890DE82D49E459F4C405C583080AB0"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 15
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+security = HTTPBearer()
 
 # Crear todas las tablas en la base de datos
 models.Base.metadata.create_all(bind=engine)
@@ -45,6 +54,17 @@ def get_db():
         yield db
     finally:
         db.close()
+
+class AuthHandler():
+    def decode_token(self, token: str):
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            return payload
+        except JWTError:
+            raise HTTPException(
+                status_code=401,
+                detail="No autorizado"
+            )
 
 
 @app.post("/usuario/create/", response_model=schemas.UserBase)
@@ -528,21 +548,76 @@ async def create_pedido_cliente_template(
 
 
 
+def auth_wrapper(self, auth: HTTPAuthorizationCredentials = Depends(security)):
+        return self.decode_token(auth.credentials)
 
-@app.post("/token", response_model=schemas.Token)
-async def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()):
-    usuario = auth.autenticar_usuario(db, form_data.username, form_data.password)
-    if not usuario:
+def create_access_token(self, data: dict, expires_delta: timedelta = None):
+        to_encode = data.copy()
+        if expires_delta:
+            expire = datetime.now(timezone.utc) + expires_delta
+        else:
+            expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        to_encode.update({"exp": expire})
+        encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+        return encoded_jwt
+
+def get_hash_password(self, password: str):
+        return pwd_context.hash(password)
+
+def verify_password(self, plain_password: str, hashed_password: str):
+        return pwd_context.verify(plain_password, hashed_password)
+
+auth_handler = AuthHandler()
+
+"""@app.post('/token', response_model=schemas.Token)
+async def login_for_access_token(db: Session = Depends(get_db), form_data: schemas.):
+    user = db.query(models.Usuario).filter(models.Usuario.correo == form_data.email).first()
+    if not user or not auth_handler.verify_password(form_data.password, user.contraseña):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Usuario o contraseña incorrectos",
-            headers={"WWW-Authenticate": "Bearer"},
+            status_code=401,
+            detail="Correo o contraseña incorrectos"
         )
-    access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = auth.crear_token_acceso(
-        data={"sub": usuario.correo_electronico}, expires_delta=access_token_expires
-    )
+    access_token = auth_handler.create_access_token(data={"sub": user.correo})
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@app.get('/perfil', response_model=schemas.Usuario)
+async def read_profile(auth: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
+    token_data = auth_handler.decode_token(auth.credentials)
+    user = db.query(models.Usuario).filter(models.Usuario.correo == token_data['sub']).first()
+    if user is None:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    return user"""
+
+
+##############CALIFICACIONES############
+@app.get("/calificar/{producto_id}", response_class=HTMLResponse)
+async def calificar(request: Request, producto_id: int, db: Session = Depends(get_db)):
+    product = crudProducto.get_product_by_id(db, producto_id)
+    if not product:
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
+    return templates.TemplateResponse("calificar.html.jinja", {"request": request, "product": product})
+
+@app.post("/submit_calificacion", response_class=HTMLResponse)
+async def submit_calificacion(request: Request, producto_id: int = Form(...), calificacion: int = Form(...), comentario: str = Form(...), db: Session = Depends(get_db)):
+    user_id = 1  # Aquí debes obtener el ID del usuario autenticado
+    calificacion_data = schemas.CalificacionCreate(
+        id_producto=producto_id,
+        id_cliente=user_id,
+        calificacion=calificacion,
+        comentario=comentario
+    )
+    crudCalificaciones.create_calificacion(db, calificacion_data)
+    return RedirectResponse(f"/listar_calificaciones/{producto_id}", status_code=HTTP_303_SEE_OTHER)
+
+@app.get("/listar_calificaciones/{producto_id}", response_class=HTMLResponse)
+async def listar_calificaciones(request: Request, producto_id: int, db: Session = Depends(get_db)):
+    product = crudProducto.get_product_by_id(db, producto_id)
+    calificaciones = crudCalificaciones.get_calificaciones_by_producto(db, producto_id)
+    return templates.TemplateResponse("listar_calificaciones.html.jinja", {"request": request, "product": product, "calificaciones": calificaciones})
+
+
+
 
 
 @app.get("/perfil_usuario/", response_class=HTMLResponse)
@@ -650,3 +725,4 @@ async def delete_charge(charge_id: int, request: Request, db: Session = Depends(
 @app.get("/charge/create", response_class=HTMLResponse)
 async def create_charge_template(request: Request):
     return templates.TemplateResponse("crearEncargoArtesano.html.jinja", {"request": request})"""
+
