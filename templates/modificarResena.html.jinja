@@ -1,0 +1,45 @@
+{% extends 'baseArtesano.html.jinja' %}
+
+{% block content %}
+
+<h1 class="titulo"> {% block title %}Actualiza la reseña{% endblock %}</h1>
+
+<form action="/review/update/" method="post">
+    <div>
+        <input type="hidden" class="form-control" name="id_resena" required value="{{ review.id_resena }}">
+    </div>
+
+    <div>
+        <label for="id_producto">Producto a reseñar: </label><br>
+        <input type="number" class="form-control" name="id_producto" placeholder="id_producto" required value="{{ review.id_producto }}">
+        <br>
+    </div>
+    
+    <div>
+        <label for="fecha_invencion">Fecha de invención: </label><br>
+        <input type="date" class="form-control" name="fecha_invencion" placeholder="fecha_invencion" required value="{{ review.fecha_invencion }}">
+        <br>
+    </div>
+
+    <div>
+        <label for="creador">Creador: </label><br>
+        <input type="text" class="form-control" name="creador" placeholder="creador" required value="{{ review.creador }}"> 
+        <br>
+    </div>
+
+    <div>
+        <label for="anios_produccion">Años de producción: </label><br>
+        <input type="number" class="form-control" name="anios_produccion" placeholder="anios_produccion" required value="{{ review.anios_produccion }}">
+        <br>
+    </div> 
+
+    <div>
+        <label for="anecdotas">Anecdotas: </label><br>
+        <input type="text" class="form-control" name="anecdotas" placeholder="anecdotas" required value="{{ review.anecdotas }}">
+        <br>
+    </div> 
+    
+    <input type="submit" value="Submit">
+</form>
+
+{% endblock %}

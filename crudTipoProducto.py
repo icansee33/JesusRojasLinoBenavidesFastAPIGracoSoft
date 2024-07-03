@@ -34,3 +34,4 @@ def delete_type_product(db: Session, type_id: int):
 
 def get_types(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Tipo_Producto).offset(skip).limit(limit).all()
+

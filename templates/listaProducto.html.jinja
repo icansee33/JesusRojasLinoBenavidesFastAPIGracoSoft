@@ -14,7 +14,11 @@
         <th>Imagen</th>
         <th>Acciones</th>
     </tr>
+
     {% for product in products %}
+
+    {% for product in Products %}
+
     <tr>
         <td>{{ product.id_producto }}</td>
         <td>{{ product.nombre }}</td>
@@ -23,14 +27,24 @@
         <td>{{ product.dimensiones }}</td>
         <td>{{ product.peso }}</td>
         <td><img src="/{{product.imagen}}" alt="{{ product.nombre }}" width="100"></td>
+
         <td>
             <button onclick="window.location.href='/product/update/{{product.id_producto}}';">Modificar</button>
             <form action="/product/delete/{{ product.id_producto }}" method="post" style="display:inline;">
                 <button type="submit">Eliminar</button>
             </form>
             <button onclick="window.location.href='/calificar/{{product.id_producto}}';">Calificar</button>
+
+        <td> 
+            <button onclick="window.location.href='/product/update/{{product.id_producto}}';">Modificar</button> 
+            <form action="/product/delete/{{ product.id_producto }}" method="post" style="display:inline;">
+                <button type="submit">Eliminar</button>
+            </form>
+
         </td>
     </tr>
     {% endfor %}
 </table>
 {% endblock %}
+{% endblock %}
+

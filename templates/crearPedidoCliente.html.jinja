@@ -1,0 +1,44 @@
+{% extends 'baseCliente.html.jinja' %}
+
+{% block content %}
+<h1>{% block title %} Realice su pedido {% endblock %}</h1>
+
+<form action="/order/create/" method="post">
+
+    <div>
+        <label for="id_producto">ID de Producto: </label><br>
+        <input type="text" class="form-control" name="id_producto" value="{{ product.id_producto }}" readonly>
+        <br>
+    </div>
+
+    <div>
+        <label for="nombre">Nombre: </label><br>
+        <input type="text" class="form-control" name="nombre" value="{{ product.nombre }}" readonly>
+        <br>
+    </div>
+
+    <div>
+        <label for="descripcion">Descripción: </label><br>
+        <textarea class="form-control" name="descripcion" readonly>{{ product.descripcion }}</textarea>
+        <br>
+    </div>
+
+    <div>
+        <label for="cantidad_productos">Cantidad: </label><br>
+        <input type="number" class="form-control" name="cantidad_productos" placeholder="Cantidad" required>
+        <br>
+    </div>
+
+    <div>
+        <label for="metodo_envio">Método de envío: </label><br>
+        <select class="form-control" name="metodo_envio" required>
+            <option value="agencia">Agencia de envío de paquetes</option>
+            <option value="retiro">Retiro en la fábrica del productor</option>
+        </select>
+        <br>
+    </div>
+
+    <input type="submit" value="Submit">
+
+</form>
+{% endblock %}

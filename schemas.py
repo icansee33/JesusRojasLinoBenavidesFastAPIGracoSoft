@@ -2,6 +2,8 @@ from typing import Optional
 from pydantic import BaseModel, EmailStr
 from pydantic import BaseModel
 from datetime import date
+from sqlalchemy import Double
+
 
 class UsuarioBase(BaseModel):
     cedula: str
@@ -19,13 +21,14 @@ class UsuarioCrear(UsuarioBase):
 class Usuario(UsuarioBase):
     id: int
 
-"""class UserCreate(UserBase):
+class UserCreate(UserBase):
    pass
 
 class UserUpdate(UserBase):
     contrasena: str
 
 class User(UserBase):
+
     id_usuario: int
 
 
@@ -54,6 +57,7 @@ class UsuarioActualizar(BaseModel):
     tipo_usuario: Optional[str] = None
 
 class Usuario(UsuarioBase):
+
     cedula_identidad: int
 
     class Config:
@@ -78,17 +82,20 @@ class Respuesta(BaseModel):
 
 
 """
->>>>>>> 63a0bbf7860884724fbd5f7b8f18ce118d65d58a
+
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str
 
 
 #producto
-=======
+
 class TokenData(BaseModel):
     email: Optional[str] = None
-"""
+
+
 #productoooo
 class ProductBase(BaseModel):
     id_artesano: int
@@ -112,46 +119,38 @@ class Product(ProductBase):
     class Config:
         orm_mode = True
 
+
 #Reseñas
 class ReviewBase(BaseModel):
-    id_usuario: int
     id_producto: int
     fecha_invencion: date
+    creador: str
     anios_produccion: int
-    creador:str
-    anecdotas:str
-
+    anecdotas: str
 
 class ReviewCreate(ReviewBase):
     pass
 
 class ReviewUpdate(ReviewBase):
-    id_resena:int
+    id_resena: int
 
 class Review(ReviewBase):
+    id_resena: int
 
     class Config:
         orm_mode = True
 
+
+
 class PedidoBase(BaseModel):
-    id_cliente: int
+    cedula_identidad: int
     fecha_pedido: date
     cantidad_productos: int
     metodo_env: str
+    precio_unitario: Double
     estado: str
 
-
-    class Config:
-        orm_mode = True
-
-class PedidoBase(BaseModel):
-    id_cliente: int
-    fecha_pedido: date
-    cantidad_productos: int
-    metodo_env: str
-    estado: str
-
-
+  
 class PedidoCreate(PedidoBase):
     pass
 
@@ -164,20 +163,6 @@ class Pedido(PedidoBase):
     class Config:
         orm_mode = True
 
-class DetallePedidoBase(BaseModel):
-    id_pedido: int
-    id_producto: int
-    cantidad: int
-    precio_unitario: float
-
-class DetallePedidoCreate(DetallePedidoBase):
-    pass
-
-class DetallePedidoUpdate(DetallePedidoBase):
-    pass
-
-class DetallePedido(DetallePedidoBase):
-    id_detalle: int
 
 
 #Tipo
@@ -198,20 +183,48 @@ class TypeProduct(TypeProductBase):
         orm_mode = True
 
 
-class PedidoProductoBase(BaseModel):
+
+#pedido Maestro
+class PedidoBase(BaseModel):
+    id_cliente: int
+    fecha_pedido: date
+    cantidad_productos: int
+    metodo_envionv: str
+    estado: str
+
+
+class PedidoCreate(PedidoBase):
+    pass
+
+class PedidoUpdate(PedidoBase):
     id_pedido: int
+
+class Pedido(PedidoBase):
+    id_pedido: int
+
+    class Config:
+        orm_mode = True
+
+
+
+#Encargo
+class ChargoBase(BaseModel):
     id_producto: int
-    cant_unidades: int
-    total: float
+    cedula_identidad: int
+    descripcion_encargo: str
+    fecha_encargo: date
+    cantidad_productos: int
+    metodo_envio: str
+    estado_encargo: str
 
-class PedidoProductoCreate(PedidoProductoBase):
+class ChargeCreate(ChargoBase):
     pass
 
-class PedidoProductoUpdate(PedidoProductoBase):
-    pass
+class ChargeUpdate(ChargoBase):
+    id_encargo: int
 
-class PedidoProducto(PedidoProductoBase):
-    id_pedido_producto: int
+class Pedido(ChargoBase):
+    id_encargo: int
 
     class Config:
         orm_mode = True
@@ -234,3 +247,14 @@ class Calificacion(CalificacionBase):
 
     class Config:
         orm_mode = True
+
+
+
+class Respuesta(BaseModel):
+    ok: bool
+    mensaje: str
+    data: Optional[User]
+
+    class Config:
+        arbitrary_types_allowed = True
+

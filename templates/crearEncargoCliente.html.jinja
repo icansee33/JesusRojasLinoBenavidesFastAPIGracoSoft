@@ -1,0 +1,39 @@
+{% extends 'baseCliente.html.jinja' %}
+
+{% block content %}
+<h1>{% block title %} Crear Encargo {% endblock %}</h1>
+    
+<form action="{{ url_for('create_charge_post') }}" method="post">
+    <div>
+        <label for="id_producto">ID Producto: </label><br>
+        <input type="number" class="form-control" name="id_producto" placeholder="ID del Producto" required>
+        <br>
+    </div>
+    <div>
+        <label for="cedula_identidad">Cédula de Identidad: </label><br>
+        <input type="number" class="form-control" name="cedula_identidad" placeholder="Cédula de Identidad" required>
+        <br>
+    </div>
+    <div>
+        <label for="descripcion_encargo">Descripción del Encargo: </label><br>
+        <textarea class="form-control" name="descripcion_encargo" placeholder="Descripción del Encargo" required></textarea>
+        <br>
+    </div>
+    <div>
+        <label for="fecha_encargo">Fecha del Encargo: </label><br>
+        <input type="date" class="form-control" name="fecha_encargo" required>
+        <br>
+    </div>
+    <div>
+        <label for="metodo_envio">Método de Envío: </label><br>
+        <input type="text" class="form-control" name="metodo_envio" placeholder="Método de Envío" required>
+        <br>
+    </div>
+    <div>
+        <label for="estado_encargo">Estado del Encargo: </label><br>
+        <input type="text" class="form-control" name="estado_encargo" placeholder="Estado del Encargo" required>
+        <br>
+    </div>
+    <input type="submit" value="Encargar">
+</form>
+{% endblock %}

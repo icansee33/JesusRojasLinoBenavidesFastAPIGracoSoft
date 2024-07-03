@@ -1,0 +1,17 @@
+{% extends 'baseArtesano.html.jinja' %}
+
+{% block content %}
+
+<h1 class="titulo"> {% block title %}Tipo de producto {% endblock %}</h1>
+
+<form action="{{ url_for('create_tipo_producto_post') }}" method="post">
+
+    <div>
+        <label for="nombre">Nombre: </label><br>
+        <input type="text" class="form-control" name="nombre" placeholder="nombre" required>
+        <br>
+    </div>
+    <input type="submit" value="Submit">
+</form>
+
+{% endblock %}

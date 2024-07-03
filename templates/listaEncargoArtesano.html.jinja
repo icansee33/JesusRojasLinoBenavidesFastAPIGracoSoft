@@ -1,0 +1,25 @@
+{% extends 'baseArtesano.html.jinja' %}
+
+{% block content %}
+<h1>{% block title %} Lista de Pediso {% endblock %}</h1>
+    
+<table id="formcenter">
+    <tr>
+        <th>ID del pedido</th>
+        <th>Cliente</th>
+        <th>Fecha del pedido</th>
+        <th>N° de productos</th>
+        <th>Estado (Procesando/Cancelado/Establecido/Entregado)</th>
+    </tr>
+    {% for order in Orders %}
+    <tr>
+        <td>{{ order.id_pedido }}</td>
+
+        <td>{{ order.fecha_pedido }}</td>
+        <td>{{ order.cantidad_productos }}</td>
+        <td>{{ order.estado }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
+
