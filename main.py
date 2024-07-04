@@ -8,7 +8,7 @@ from sqlalchemy import Double
 from starlette.middleware.sessions import SessionMiddleware
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-import crudUsuario, models, schemas, crudPedido, crudEncargo, seguridad.auth as auth, crudResena, crudTipoProducto,crudProducto
+import crudUsuario, models, schemas, crudPedido, crudEncargo, seguridad.auth as auth, crudResena, crudTipoProducto,crudProducto, crudCalificaciones
 from seguridad.auth import ACCESS_TOKEN_EXPIRE_MINUTES, autenticar_usuario, crear_token_acceso, obtener_usuario_activo_actual
 from fastapi.responses import JSONResponse, RedirectResponse, HTMLResponse
 from starlette.status import HTTP_303_SEE_OTHER, HTTP_400_BAD_REQUEST
@@ -115,7 +115,9 @@ async def base_cliente_iniciado(request: Request, db: Session = Depends(get_db))
 async def iniciar_sesion_template(request: Request):
     return templates.TemplateResponse("iniciarSesion.html.jinja", {"request": request})
 
-
+@app.get("/perfil_usuario/", response_class=HTMLResponse)
+async def perfil_usuario(request: Request, db: Session = Depends(get_db), usuario_actual: models.Usuario = Depends(obtener_usuario_activo_actual)):
+    return templates.TemplateResponse("perfil.html.jinja", {"request": request, "usuario": usuario_actual})
 
 @app.post('/iniciar_sesion', response_class=HTMLResponse)
 async def iniciar_sesion_post(request: Request,
@@ -137,6 +139,9 @@ async def iniciar_sesion_post(request: Request,
               'tipo_usuario': user.tipo_usuario},
         expires_delta=tiempo_expiracion
     )
+    auth.obtener_usuario_actual(Session, token_acceso)
+    usuarioActual = auth.obtener_usuario_activo_actual()
+    #print("Usuario actual: ", usuarioActual.tipo_usuario)
     request.session['cedula_identidad'] = user.cedula_identidad
     request.session['tipo_usuario'] = user.tipo_usuario
     
@@ -254,7 +259,7 @@ async def update_producto_post(request: Request,
     product_update = schemas.ProductUpdate(
         id_producto=id_producto, id_artesano=int(id_artesano),
         nombre=nombre, descripcion=descripcion, cantidad_disponible=cantidad_disponible,categoria=categoria,
-        dimensiones=dimensiones, peso=peso, id_tipo=id_tipo, imagenpath=imagenpath, 
+        dimensiones=dimensiones, peso=peso, id_tipo=id_tipo, imagen=imagenpath, 
     )
     crudProducto.update_product(db=db, product_id=id_producto, product=product_update)
     products = crudProducto.get_products(db)
@@ -419,7 +424,7 @@ async def update_tipo_producto_post(
 async def create_tipo_producto_template(request: Request):
     return templates.TemplateResponse("crearTipoProducto.html.jinja", {"request": request})
 
-
+"""
 #Pedido
 
 
@@ -527,7 +532,7 @@ async def accept_pedido_cliente(
 
 
 
-
+"""
 
 
 
@@ -547,10 +552,6 @@ async def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
-
-@app.get("/perfil_usuario/", response_class=HTMLResponse)
-async def perfil_usuario(request: Request, db: Session = Depends(get_db), usuario_actual: models.Usuario = Depends(obtener_usuario_activo_actual)):
-    return templates.TemplateResponse("perfil.html.jinja", {"request": request, "usuario": usuario_actual})
 
 @app.post("/perfil_usuario/update/")
 async def update_perfil_usuario(
@@ -652,3 +653,32 @@ async def delete_charge(charge_id: int, request: Request, db: Session = Depends(
     return templates.TemplateResponse("listaEncargoArtesano.html.jinja", {"request": request, "Orders": charges})
 
 """
+
+###############CALIFICAR##################
+
+@app.get("/calificar/{producto_id}", response_class=HTMLResponse)
+async def calificar(request: Request, producto_id: int, db: Session = Depends(get_db)):
+    product = crudProducto.get_product_by_id(db, producto_id)
+    if not product:
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
+    return templates.TemplateResponse("calificar.html.jinja", {"request": request, "product": product})
+
+@app.post("/submit_calificacion", response_class=HTMLResponse)
+async def submit_calificacion(request: Request, producto_id: int = Form(...), calificacion: int = Form(...), comentario: str = Form(...), db: Session = Depends(get_db)):
+    user_id = 1  # Aquí debes obtener el ID del usuario autenticado
+    calificacion_data = schemas.CalificacionCreate(
+        id_producto=producto_id,
+        id_cliente=user_id,
+        calificacion=calificacion,
+        comentario=comentario
+    )
+    crudCalificaciones.create_calificacion(db, calificacion_data)
+    return RedirectResponse(f"/listar_calificaciones/{producto_id}", status_code=HTTP_303_SEE_OTHER)
+
+####LISTAR CALIFICACION
+
+@app.get("/listar_calificaciones/{producto_id}", response_class=HTMLResponse)
+async def listar_calificaciones(request: Request, producto_id: int, db: Session = Depends(get_db)):
+    product = crudProducto.get_product_by_id(db, producto_id)
+    calificaciones = crudCalificaciones.get_calificaciones_by_producto(db, producto_id)
+    return templates.TemplateResponse("listar_calificaciones.html.jinja", {"request": request, "product": product, "calificaciones": calificaciones})

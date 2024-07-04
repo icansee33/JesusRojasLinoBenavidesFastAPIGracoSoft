@@ -162,3 +162,20 @@ class Respuesta(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+
+from pydantic import BaseModel
+
+class CalificacionBase(BaseModel):
+    id_producto: int
+    id_cliente: int
+    calificacion: int
+    comentario: str
+
+class CalificacionCreate(CalificacionBase):
+    pass
+
+class Calificacion(CalificacionBase):
+    id_calificacion: int
+
+    class Config:
+        orm_mode = True
