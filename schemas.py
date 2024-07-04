@@ -121,7 +121,6 @@ class PedidoBase(BaseModel):
     fecha_pedido: date
     cantidad_productos: int
     metodo_envio: str
-    precio_unitario: float  
     monto_total: float 
     estado: str
 
@@ -134,7 +133,6 @@ class PedidoUpdate(BaseModel):
     cantidad_productos: int
     metodo_envio: str
     fecha_pedido: date
-    precio_unitario: float
     monto_total: float
     estado: str
 

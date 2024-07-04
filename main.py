@@ -221,14 +221,15 @@ async def create_producto_post(
                               cantidad_disponible=cantidad_disponible,
                               categoria=categoria, 
                               dimensiones=dimensiones,
-                              precio_unitario=precio_unitario,
                               imagen=imagenpath, 
+                              precio_unitario=precio_unitario,
                               peso=peso)
     crudProducto.create_product(db=db, product=product)
     products = crudProducto.get_products(db)
     for product in products:
         print("Id:", product.id_tipo)
         print("Nombre:", product.nombre)
+        print('Precio: ', precio_unitario )
     return templates.TemplateResponse("listaProducto.html.jinja", {"request": request, "Products": products})
 
 
@@ -425,7 +426,8 @@ async def create_tipo_producto_template(request: Request):
 @app.get("/order/client/list/", response_class=HTMLResponse, name="read_productos_pedidos_cliente")
 async def read_productos_pedidos_cliente(request: Request, db: Session = Depends(get_db)):
     products = crudProducto.get_products(db)
-    return templates.TemplateResponse("catalogoPedidoCliente.html.jinja", {"request": request, "products": products})
+    print("Client list: ", products)
+    return templates.TemplateResponse("catalagoPedidoCliente.html.jinja", {"request": request, "products": products})
 
 # Ruta para redirigir al cliente a la interfaz de solicitar pedido, cuando se abra la interfaz debe saber el id del producto
 @app.get("/order/client/request/{id_producto}", response_class=HTMLResponse)
