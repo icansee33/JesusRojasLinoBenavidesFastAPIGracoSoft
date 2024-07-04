@@ -11,6 +11,7 @@ def create_product(db: Session, product: schemas.ProductCreate):
         id_tipo=product.id_tipo,
         dimensiones=product.dimensiones,
         peso=product.peso,
+        precio_unitario= product.precio_unitario,
         imagen=product.imagen
     )
 

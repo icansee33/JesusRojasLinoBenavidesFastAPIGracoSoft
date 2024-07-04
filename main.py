@@ -244,6 +244,7 @@ async def update_producto_post(request: Request,
                           dimensiones: str = Form(...), 
                           peso: str = Form(...), 
                           id_tipo: str = Form(...), 
+                          precio_unitario: str=Form(...),
                           imagen: UploadFile = File(...),
                           db: Session = Depends(get_db)):
     imagenpath = save_upload_file(imagen, UPLOAD_DIR)
@@ -252,7 +253,7 @@ async def update_producto_post(request: Request,
     product_update = schemas.ProductUpdate(
         id_producto=id_producto, id_artesano=id_artesano,
         nombre=nombre, descripcion=descripcion, cantidad_disponible=cantidad_disponible,categoria=categoria,
-        dimensiones=dimensiones, peso=peso, id_tipo=id_tipo, imagen=imagenpath, 
+         precio_unitario=precio_unitario, dimensiones=dimensiones, peso=peso, id_tipo=id_tipo, imagen=imagenpath, 
     )
     crudProducto.update_product(db=db, product_id=id_producto, product=product_update)
     products = crudProducto.get_products(db)
@@ -427,31 +428,33 @@ async def create_tipo_producto_template(request: Request):
 async def read_productos_pedidos_cliente(request: Request, db: Session = Depends(get_db)):
     products = crudProducto.get_products(db)
     print("Client list: ", products)
-    return templates.TemplateResponse("catalagoPedidoCliente.html.jinja", {"request": request, "products": products})
+    return templates.TemplateResponse("catalagoPedidoCliente.html.jinja", {"request": request, "Products": products})
 
 # Ruta para redirigir al cliente a la interfaz de solicitar pedido, cuando se abra la interfaz debe saber el id del producto
-@app.get("/order/client/request/{id_producto}", response_class=HTMLResponse)
-async def request_pedido_cliente(request: Request, id_producto: int, db: Session = Depends(get_db)):
-    product = crudProducto.get_product_by_id(db, id_producto)
+@app.get("/order/client/request/{product_id}", response_class=HTMLResponse)
+async def solicitar_producto(request: Request, product_id: int, db: Session = Depends(get_db)):
+    product = crudProducto.get_product_by_id(db, product_id)
+    if product is None:
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
     return templates.TemplateResponse("crearPedidoCliente.html.jinja", {"request": request, "product": product})
 
 # Ruta para redirigir al artesano a la interfaz de establecer pedido
 @app.get("/order/artesan/update/{order_id}", response_class=HTMLResponse)
 async def set_up_pedido_artesano_template(request: Request, order_id: int, db: Session = Depends(get_db)):
     order = crudPedido.get_order_by_id(db, order_id)
-    return templates.TemplateResponse("modificarPedidoArtesano.html.jinja", {"request": request, "order": order})
+    return templates.TemplateResponse("modificarPedidoArtesano.html.jinja", {"request": request, "Orders": order})
 
 # Ruta para redirigir al cliente a la lista de sus pedidos
 @app.get("/order/client/orders/", response_class=HTMLResponse, name="read_pedidos_cliente")
 async def read_pedidos_cliente(request: Request, db: Session = Depends(get_db)):
     orders = crudPedido.get_orders(db)
-    return templates.TemplateResponse("listaPedidoCliente.html.jinja", {"request": request, "orders": orders})
+    return templates.TemplateResponse("listaPedidoCliente.html.jinja", {"request": request, "Orders": orders})
 
 # Ruta para redirigir al artesano al catálogo de pedidos (le aparecen los pedidos de todos los clientes)
 @app.get("/order/product/artesan/list/", response_class=HTMLResponse, name="read_pedidos_artesano")
 async def read_pedidos_artesano(request: Request, db: Session = Depends(get_db)):
     orders = crudPedido.get_orders(db)
-    return templates.TemplateResponse("listaPedidoArtesano.html.jinja", {"request": request, "orders": orders})
+    return templates.TemplateResponse("listaPedidoArtesano.html.jinja", {"request": request, "Orders": orders})
 
 
 @app.post("/order/calculate")
