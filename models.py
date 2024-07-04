@@ -47,7 +47,6 @@ class Producto(Base):
     artesano = relationship("Usuario", back_populates="productos")
     resenas = relationship("Resena", back_populates="producto")
     encargos = relationship("Encargo", back_populates="producto")
-    detalles = relationship("DetallePedido", back_populates="producto")
     calificaciones = relationship("Calificacion", back_populates="producto")
     pedidos = relationship("Pedido", back_populates="producto")
 

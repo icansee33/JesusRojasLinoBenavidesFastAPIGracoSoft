@@ -23,6 +23,8 @@ def verificar_contrasena(plain_password, hashed_password):
 def obtener_hash_contrasena(password):
     return pwd_context.hash(password)
 
+
+
 def autenticar_usuario(db: Session, email: str, password: str):
     usuario = crudUsuario.get_user_by_email(db, email)
     if not usuario:
@@ -30,6 +32,7 @@ def autenticar_usuario(db: Session, email: str, password: str):
     if not verificar_contrasena(password, usuario.contrasena):
         return False
     return usuario
+
 
 
 def crear_token_acceso(data: dict, expires_delta: Union[timedelta, None] = None):
