@@ -184,8 +184,6 @@ if not os.path.exists(UPLOAD_DIR):
     os.makedirs(UPLOAD_DIR)
 
 
-
-
 def save_upload_file(upload_file: UploadFile, upload_dir: str):
     filename, file_extension = os.path.splitext(upload_file.filename)
     unique_filename = f"{filename}_{uuid.uuid4().hex}{file_extension}"
@@ -206,6 +204,7 @@ async def create_producto_post(
                         categoria: str = Form(...), 
                         dimensiones: str = Form(...), 
                         peso: float = Form(...),
+                        precio_unitario: float = Form(...),
                         imagen: UploadFile = File(...),
                         db: Session = Depends(get_db)):
     id_artesano = request.session.get('cedula_identidad')
@@ -222,6 +221,7 @@ async def create_producto_post(
                               cantidad_disponible=cantidad_disponible,
                               categoria=categoria, 
                               dimensiones=dimensiones,
+                              precio_unitario=precio_unitario,
                               imagen=imagenpath, 
                               peso=peso)
     crudProducto.create_product(db=db, product=product)
@@ -231,8 +231,10 @@ async def create_producto_post(
         print("Nombre:", product.nombre)
     return templates.TemplateResponse("listaProducto.html.jinja", {"request": request, "Products": products})
 
+
 @app.post("/product/update/", response_class=HTMLResponse)
 async def update_producto_post(request: Request, 
+                          id_artesano: int = Form(...),
                           id_producto: int = Form(...),
                           nombre: str = Form(...), 
                           descripcion: str = Form(...), 
@@ -243,18 +245,13 @@ async def update_producto_post(request: Request,
                           id_tipo: str = Form(...), 
                           imagen: UploadFile = File(...),
                           db: Session = Depends(get_db)):
-    id_artesano = request.session.get('cedula_identidad')
-    if not id_artesano:
-        raise HTTPException(status_code=401, detail="Unauthorized. Please log in as an artesano.")
-    
-
     imagenpath = save_upload_file(imagen, UPLOAD_DIR)
     print("Imagen path: ", imagenpath)
 
     product_update = schemas.ProductUpdate(
-        id_producto=id_producto, id_artesano=int(id_artesano),
+        id_producto=id_producto, id_artesano=id_artesano,
         nombre=nombre, descripcion=descripcion, cantidad_disponible=cantidad_disponible,categoria=categoria,
-        dimensiones=dimensiones, peso=peso, id_tipo=id_tipo, imagenpath=imagenpath, 
+        dimensiones=dimensiones, peso=peso, id_tipo=id_tipo, imagen=imagenpath, 
     )
     crudProducto.update_product(db=db, product_id=id_producto, product=product_update)
     products = crudProducto.get_products(db)
@@ -263,6 +260,7 @@ async def update_producto_post(request: Request,
         print("Id:", product.id_producto)
         print("Nombre:", product.nombre)
     return templates.TemplateResponse("listaProducto.html.jinja", {"request": request, "Products": products})
+
 
 
 
@@ -453,23 +451,38 @@ async def read_pedidos_artesano(request: Request, db: Session = Depends(get_db))
     orders = crudPedido.get_orders(db)
     return templates.TemplateResponse("listaPedidoArtesano.html.jinja", {"request": request, "orders": orders})
 
+
 @app.post("/order/calculate")
 async def calcular_monto(
+    request: Request,
     id_producto: int = Form(...),
+    cedula_identidad: str = Form(...),
     cantidad_productos: int = Form(...),
+    metodo_envio: str = Form(...),
     precio_unitario: float = Form(...),
     db: Session = Depends(get_db)
 ):
+    # Validar disponibilidad del producto
+    product = crudProducto.get_product_by_id(db, id_producto)
+    if not product or product.cantidad_disponible < cantidad_productos:
+        return templates.TemplateResponse("crearPedidoCliente.html.jinja", {"request": request, "message": "Cantidad de productos no disponible."})
+    
     # Calcular el monto total y el IVA
     monto_base = cantidad_productos * precio_unitario
     iva = monto_base * 0.16
     monto_total = monto_base + iva
-    
-    return {"monto_total": monto_total}
 
+    return templates.TemplateResponse("crearPedidoCliente.html.jinja", {
+        "request": request,
+        "product": product,
+        "cedula_identidad": cedula_identidad,
+        "cantidad_productos": cantidad_productos,
+        "metodo_envio": metodo_envio,
+        "precio_unitario": precio_unitario,
+        "monto_total": monto_total
+    })
 
-# Ruta para que el cliente cree un pedido
-@app.post("/order/create/{id_producto}", response_model=schemas.Pedido)
+@app.post("/order/create/", response_model=schemas.Pedido)
 async def solicitar_pedido(
     request: Request,
     id_producto: int = Form(...),
@@ -477,19 +490,14 @@ async def solicitar_pedido(
     cantidad_productos: int = Form(...),
     metodo_envio: str = Form(...),
     precio_unitario: float = Form(...), 
+    monto_total: float = Form(...), 
     db: Session = Depends(get_db)
 ):
     # Validar disponibilidad del producto
     product = crudProducto.get_product_by_id(db, id_producto)
     if not product or product.cantidad_disponible < cantidad_productos:
-        return templates.TemplateResponse( {"request": request, "message": "Cantidad de productos no disponible."})
+        return templates.TemplateResponse({"request": request, "message": "Cantidad de productos no disponible."})
     
-    # Calcular el monto total y el IVA
-    monto_base = cantidad_productos * precio_unitario
-    iva = monto_base * 0.16
-    monto_total = monto_base + iva
-    
-
     fecha_pedido = date.today()
     estado = "Solicitado"
 
@@ -505,8 +513,9 @@ async def solicitar_pedido(
     )
     
     crudPedido.create_order(db, order)
-    orders = crudPedido.get_orders(db)
-    return templates.TemplateResponse("catalogoPedidoCliente.html.jinja", {"request": request, "products": orders})
+    products = crudProducto.get_products(db)
+    return templates.TemplateResponse("catalagoPedidoCliente.html.jinja", {"request": request, "Products": products})
+
 
 # Ruta para que el cliente acepte un pedido
 @app.post("/order/client/accept", response_class=HTMLResponse)
@@ -524,12 +533,6 @@ async def accept_pedido_cliente(
 
     orders = crudPedido.get_orders(db)
     return templates.TemplateResponse("listaPedidoCliente.html.jinja", {"request": request, "orders": orders})
-
-
-
-
-
-
 
 
 @app.post("/token", response_model=schemas.Token)

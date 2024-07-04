@@ -1,8 +1,8 @@
-from typing import Optional
+from typing import Optional, TypeVar, Generic
 from pydantic import BaseModel
 from datetime import date
-from sqlalchemy import Double
 
+T = TypeVar('T')
 
 class UserBase(BaseModel):
     cedula_identidad: str
@@ -13,7 +13,6 @@ class UserBase(BaseModel):
     correo_electronico: str
     tipo_usuario: str
     contrasena: str
-
 
 class UserCreate(UserBase):
    pass
@@ -34,7 +33,6 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     email: Optional[str] = None
 
-
 #productoooo
 class ProductBase(BaseModel):
     id_artesano: int
@@ -43,6 +41,7 @@ class ProductBase(BaseModel):
     descripcion: str
     cantidad_disponible: int
     categoria: str
+    precio_unitario: float
     dimensiones: str
     peso: float
     imagen: str
@@ -57,7 +56,6 @@ class Product(ProductBase):
     
     class Config:
         orm_mode = True
-
 
 #Reseñas
 class ReviewBase(BaseModel):
@@ -79,7 +77,6 @@ class Review(ReviewBase):
     class Config:
         orm_mode = True
 
-
 #Encargo
 class ChargoBase(BaseModel):
     id_producto: int
@@ -89,7 +86,6 @@ class ChargoBase(BaseModel):
     cantidad_productos: int
     metodo_envio: str
     estado_encargo: str
-
 
 class ChargeCreate(ChargoBase):
     pass
@@ -103,9 +99,7 @@ class Pedido(ChargoBase):
     class Config:
         orm_mode = True
 
-
 #Tipo
-
 class TypeProductBase(BaseModel):
     nombre: str
 
@@ -117,11 +111,8 @@ class TypeUpdate(TypeProductBase):
 
 class TypeProduct(TypeProductBase):
 
-
     class Config:
         orm_mode = True
-
-
 
 #Pedido
 class PedidoBase(BaseModel):
@@ -153,12 +144,11 @@ class Pedido(PedidoBase):
     class Config:
         orm_mode = True
 
-
-
-class Respuesta(BaseModel):
+# Respuesta con datos genéricos
+class Respuesta(Generic[T], BaseModel):
     ok: bool
     mensaje: str
-    data: Optional[User]
+    data: Optional[T]
 
     class Config:
         arbitrary_types_allowed = True

@@ -1,8 +1,8 @@
 """init
 
-Revision ID: dcc434c2f80e
+Revision ID: 0233bc56fd62
 Revises: 
-Create Date: 2024-07-04 04:42:57.077512
+Create Date: 2024-07-04 10:54:38.441656
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'dcc434c2f80e'
+revision: str = '0233bc56fd62'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -51,6 +51,7 @@ def upgrade() -> None:
     sa.Column('cantidad_disponible', sa.Integer(), nullable=False),
     sa.Column('categoria', sa.String(length=50), nullable=False),
     sa.Column('dimensiones', sa.String(length=50), nullable=False),
+    sa.Column('precio_unitario', sa.Double(precision=10, asdecimal=2), nullable=False),
     sa.Column('peso', sa.Double(precision=10, asdecimal=2), nullable=False),
     sa.Column('imagen', sa.String(length=255), nullable=False),
     sa.ForeignKeyConstraint(['id_artesano'], ['usuarios.cedula_identidad'], ),
@@ -86,7 +87,6 @@ def upgrade() -> None:
     sa.Column('fecha_pedido', sa.Date(), nullable=False),
     sa.Column('cantidad_productos', sa.Integer(), nullable=False),
     sa.Column('metodo_envio', sa.String(length=50), nullable=False),
-    sa.Column('precio_unitario', sa.Double(precision=10, asdecimal=2), nullable=False),
     sa.Column('monto_total', sa.Double(precision=10, asdecimal=2), nullable=False),
     sa.Column('estado', sa.String(length=50), nullable=False),
     sa.ForeignKeyConstraint(['cedula_identidad'], ['usuarios.cedula_identidad'], ),

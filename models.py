@@ -40,6 +40,7 @@ class Producto(Base):
     cantidad_disponible = Column(Integer, nullable=False)
     categoria = Column(String(50), nullable=False)
     dimensiones = Column(String(50), nullable=False)
+    precio_unitario = Column(Double(10, 2), nullable=False)
     peso = Column(Double(10, 2), nullable=False)
     imagen = Column(String(255), nullable=False)
 
@@ -71,7 +72,6 @@ class Pedido(Base):
     fecha_pedido = Column(Date, nullable=False)
     cantidad_productos = Column(Integer, nullable=False)
     metodo_envio = Column(String(50), nullable=False)
-    precio_unitario = Column(Double(10, 2), nullable=False)
     monto_total = Column(Double(10, 2), nullable=False)
     estado = Column(String(50), nullable=False)
 

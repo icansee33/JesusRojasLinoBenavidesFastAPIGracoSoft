@@ -3,7 +3,8 @@
 {% block content %}
 <h1>{% block title %} Realice su pedido {% endblock %}</h1>
 
-<form action="/order/create/" method="post">
+
+<form action="{{ url_for('solicitar_pedido') }}" method="post">
 
     <div>
         <label for="id_producto">ID de Producto: </label><br>
@@ -13,13 +14,13 @@
 
     <div>
         <label for="nombre">Nombre: </label><br>
-        <input type="text" class="form-control" name="nombre" value="{{ product.nombre }}" >
+        <input type="text" class="form-control" name="nombre" value="{{ product.nombre }}" readonly>
         <br>
     </div>
 
     <div>
         <label for="precio_unitario">Precio por unidad: </label><br>
-        <input type="Float" class="form-control" name="precio_unitario" placeholder="precio_unitario" required>
+        <input type="number" class="form-control" name="precio_unitario" value="{{product.precio_unitario }}" required>
         <br>
     </div>
 
@@ -32,30 +33,44 @@
     <div>
         <label for="metodo_envio">Método de envío: </label><br>
         <select class="form-control" name="metodo_envio" required>
-            <option value="agencia">Agencia de envío de paquetes</option>
-            <option value="retiro">Retiro en la fábrica del productor</option>
+            <option value="agencia" {% if metodo_envio == "agencia" %}selected{% endif %}>Agencia de envío de paquetes</option>
+            <option value="retiro" {% if metodo_envio == "retiro" %}selected{% endif %}>Retiro en la fábrica del productor</option>
         </select>
         <br>
     </div>
 
     <div>
-        <label for="cantidad_productos">Cantidad de este producto que desee llevar: </label><br>
-        <input type="number" class="form-control" name="cantidad_productos" placeholder="cantidad" required>
+        <label for="cantidad_productos">Cantidad de este producto que desea llevar: </label><br>
+        <input type="number" class="form-control" name="cantidad_productos" value="{{ cantidad_productos | default('') }}" required>
         <br>
     </div>
 
     <div>
         <label for="monto_total">Monto total a pagar: </label><br>
-        <input type="number" class="form-control" name="monto_total" placeholder="monto_total" required>
+        <input type="number" class="form-control" name="monto_total" value="{{ monto_total | default('') }}" readonly>
         <br>
     </div>
 
-
-
-    <input type="submit" value="Submit">
+    <form action="/product/delete/{{ product.id_producto }}" method="post" style="display:inline;">
+        <button type="submit">Eliminar</button>
+    </form>
 
 </form>
+
+{% if monto_total %}
+<form method="post" action="/order/create">
+    <input type="hidden" name="id_producto" value="{{ product.id_producto }}">
+    <input type="hidden" name="cedula_identidad" value="{{ cedula_identidad }}">
+    <input type="hidden" name="cantidad_productos" value="{{ cantidad_productos }}">
+    <input type="hidden" name="metodo_envio" value="{{ metodo_envio }}">
+    <input type="hidden" name="precio_unitario" value="{{ precio_unitario }}">
+    <input type="hidden" name="monto_total" value="{{ monto_total }}">
+    <input type="submit" value="Confirmar Pedido">
+</form>
+{% endif %}
+
+
+
+
+
 {% endblock %}
-
-
- 
