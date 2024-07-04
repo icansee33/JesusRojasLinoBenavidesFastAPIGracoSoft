@@ -7,25 +7,25 @@
 
     <div>
         <label for="id_producto">ID de Producto: </label><br>
-        <input type="text" class="form-control" name="id_producto" value="{{ product.id_producto }}" readonly>
+        <input type="text" class="form-control" name="id_producto" value="{{ product.id_producto }}">
         <br>
     </div>
 
     <div>
         <label for="nombre">Nombre: </label><br>
-        <input type="text" class="form-control" name="nombre" value="{{ product.nombre }}" readonly>
+        <input type="text" class="form-control" name="nombre" value="{{ product.nombre }}" >
+        <br>
+    </div>
+
+    <div>
+        <label for="precio_unitario">Precio por unidad: </label><br>
+        <input type="Float" class="form-control" name="precio_unitario" placeholder="precio_unitario" required>
         <br>
     </div>
 
     <div>
         <label for="descripcion">Descripción: </label><br>
         <textarea class="form-control" name="descripcion" readonly>{{ product.descripcion }}</textarea>
-        <br>
-    </div>
-
-    <div>
-        <label for="cantidad_productos">Cantidad: </label><br>
-        <input type="number" class="form-control" name="cantidad_productos" placeholder="Cantidad" required>
         <br>
     </div>
 
@@ -38,7 +38,24 @@
         <br>
     </div>
 
+    <div>
+        <label for="cantidad_productos">Cantidad de este producto que desee llevar: </label><br>
+        <input type="number" class="form-control" name="cantidad_productos" placeholder="cantidad" required>
+        <br>
+    </div>
+
+    <div>
+        <label for="monto_total">Monto total a pagar: </label><br>
+        <input type="number" class="form-control" name="monto_total" placeholder="monto_total" required>
+        <br>
+    </div>
+
+
+
     <input type="submit" value="Submit">
 
 </form>
 {% endblock %}
+
+
+ 

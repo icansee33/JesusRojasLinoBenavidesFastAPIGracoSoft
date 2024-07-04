@@ -23,8 +23,10 @@
         <td>{{ product.dimensiones }}</td>
         <td>{{ product.peso }}</td>
         <td><img src="/{{ product.imagen }}" alt="{{ product.nombre }}" width="100"></td>
+
         <td>
-            <button value="Solicitar" onclick="window.location.href='/order/create/{product.id_producto}' ;" >Solicitar</button> 
+            <button onclick="window.location.href='/order/create/{product.id_producto}' ;" >Solicitar</button> 
+
         </td>
     </tr>
     {% endfor %}
