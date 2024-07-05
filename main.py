@@ -8,8 +8,10 @@ from sqlalchemy import Double
 from starlette.middleware.sessions import SessionMiddleware
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+from excepciones import Exception_No_Apto_Para_Artesano, Exception_No_Apto_Para_Cliente
+from excepcionesUsuario import LoginExpired, Requires_el_Login_de_Exception
 import crudUsuario, models, schemas, crudPedido, crudEncargo, seguridad.auth as auth, crudResena, crudTipoProducto,crudProducto, crudCalificaciones
-from seguridad.auth import ACCESS_TOKEN_EXPIRE_MINUTES, autenticar_usuario, crear_token_acceso, obtener_usuario_activo_actual
+import seguridad.auth
 from fastapi.responses import JSONResponse, RedirectResponse, HTMLResponse
 from starlette.status import HTTP_303_SEE_OTHER, HTTP_400_BAD_REQUEST
 from typing import Annotated, Optional, Union
@@ -109,6 +111,24 @@ async def base_cliente_iniciado(request: Request, db: Session = Depends(get_db))
     return templates.TemplateResponse("baseCliente.html.jinja", {"request": request})
 
 
+#Excepciones
+@app.exception_handler(Requires_el_Login_de_Exception)
+async def exception_handler(request: Request, exc: Requires_el_Login_de_Exception) -> Response:
+    return templates.TemplateResponse("message-redirection.html", {"request": request, "message": exc.message, "path_route": exc.path_route, "path_message": exc.path_message})
+
+@app.exception_handler(LoginExpired)
+async def exception_handler(request: Request, exc: Requires_el_Login_de_Exception) -> Response:
+    return templates.TemplateResponse("message-redirection.html", {"request": request, "message": exc.message, "path_route": exc.path_route, "path_message": exc.path_message})
+
+@app.exception_handler(Exception_No_Apto_Para_Artesano)
+async def exception_handler(request: Request, exc: Requires_el_Login_de_Exception) -> Response:
+    return templates.TemplateResponse("message-redirection.html", {"request": request, "message": exc.message, "path_route": exc.path_route, "path_message": exc.path_message})
+
+@app.exception_handler(Exception_No_Apto_Para_Cliente)
+async def exception_handler(request: Request, exc: Requires_el_Login_de_Exception) -> Response:
+    return templates.TemplateResponse("message-redirection.html", {"request": request, "message": exc.message, "path_route": exc.path_route, "path_message": exc.path_message})
+
+
 
 # Iniciar sesión
 @app.get("/iniciarsesion/", response_class=HTMLResponse)
@@ -122,7 +142,7 @@ async def iniciar_sesion_post(request: Request,
                    correo_electronico: str = Form(...),               
                    contrasena: str = Form(...), 
                    db: Session = Depends(get_db)):
-    user = autenticar_usuario(db, correo_electronico, contrasena)
+    user = auth.autenticar_usuario(db, correo_electronico, contrasena)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -447,12 +467,24 @@ async def solicitar_producto(request: Request, product_id: int, db: Session = De
         raise HTTPException(status_code=404, detail="Producto no encontrado")
     return templates.TemplateResponse("crearPedidoCliente.html.jinja", {"request": request, "product": product})
 
-
+"""
 # Ruta para redirigir al cliente a la lista de sus pedidos
 @app.get("/order/client/orders/", response_class=HTMLResponse, name="read_pedidos_cliente")
 async def read_pedidos_cliente(request: Request, db: Session = Depends(get_db)):
     orders = crudPedido.get_orders_product(db)
     return templates.TemplateResponse("listaPedidoCliente.html.jinja", {"request": request, "Orders": orders})
+"""
+
+#Reedirigir al cliente a la lista de sus pedidos
+@app.get("/order/client/orders/", response_class=HTMLResponse, name="read_pedidos_cliente")
+async def read_pedidos_cliente(request: Request, db: Session = Depends(get_db)):
+    cedula_identidad = request.session.get('cedula_identidad')
+    if not cedula_identidad:
+        raise HTTPException(status_code=401, detail="Unauthorized. Please log in as a client.")
+    
+    orders = crudPedido.get_orders_by_user(db, cedula_identidad)
+    return templates.TemplateResponse("listaPedidoCliente.html.jinja", {"request": request, "Orders": orders})
+
 
 # Ruta para redirigir al artesano al catálogo de pedidos (le aparecen los pedidos de todos los clientes)
 @app.get("/order/artesan/list", response_class=HTMLResponse, name="read_pedidos_artesano")
@@ -604,7 +636,7 @@ async def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth
 
 
 @app.get("/perfil_usuario/", response_class=HTMLResponse)
-async def perfil_usuario(request: Request, db: Session = Depends(get_db), usuario_actual: models.Usuario = Depends(obtener_usuario_activo_actual)):
+async def perfil_usuario(request: Request, db: Session = Depends(get_db), usuario_actual: models.Usuario = Depends(auth.obtener_usuario_activo_actual)):
     return templates.TemplateResponse("perfil.html.jinja", {"request": request, "usuario": usuario_actual})
 
 @app.post("/perfil_usuario/update/")
@@ -667,13 +699,14 @@ async def submit_calificacion(request: Request, producto_id: int = Form(...), ca
     crudCalificaciones.create_calificacion(db, calificacion_data)
     return RedirectResponse(f"/listar_calificaciones/{producto_id}", status_code=HTTP_303_SEE_OTHER)
 
-####LISTAR CALIFICACION
 
 @app.get("/listar_calificaciones/{producto_id}", response_class=HTMLResponse, name="listarCalificaciones")
 async def listarCalificaciones(request: Request, producto_id: int, db: Session = Depends(get_db)):
     product = crudProducto.get_product_by_id(db, producto_id)
     calificaciones = crudCalificaciones.get_calificaciones_by_producto(db, producto_id)
     return templates.TemplateResponse("Listar_calificaciones.html.jinja", {"request": request, "product": product, "calificaciones": calificaciones})
+
+
 
 """
 #Encargo

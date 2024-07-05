@@ -49,3 +49,7 @@ def cancel_order(db: Session, order_id: int):
     db.delete(db_order)
     db.commit()
     return db_order
+
+
+def get_orders_by_user(db: Session, cedula_identidad:int, skip: int = 0, limit: int = 10):
+    return db.query(models.Pedido).filter(models.Pedido.cedula_identidad == cedula_identidad).all()

@@ -4,6 +4,12 @@
 <h1>{% block title %} Realice su pedido {% endblock %}</h1>
 
 <form action="/order/calculate" method="post">
+
+    <div>
+        <input type="hidden" class="form-control" name="precio_unitario" value="{{ product.precio_unitario }}" required>
+        <br>
+    </div>
+    
     <div>
         <input type="hidden" class="form-control" name="id_producto" value="{{ product.id_producto }}" readonly>
         <br>
@@ -11,19 +17,20 @@
 
     <div>
         <label for="nombre">Nombre: </label><br>
-        <input type="text" class="form-control" name="nombre" value="{{ product.nombre }}" readonly>
+        <input disabled type="text" class="form-control" name="nombre" value="{{ product.nombre }}" readonly>
         <br>
     </div>
 
     <div>
-        <label for="precio_unitario">Precio por unidad: </label><br>
-        <input type="number" class="form-control" name="precio_unitario" value="{{ product.precio_unitario }}" required>
+        <label for="precio_unitario2">Precio por unidad: </label><br>
+        <input  disabled type="number" class="form-control" name="precio_unitario2" value="{{ product.precio_unitario }}" required>
         <br>
     </div>
+
 
     <div>
         <label for="descripcion">Descripción: </label><br>
-        <textarea class="form-control" name="descripcion" readonly>{{ product.descripcion }}</textarea>
+        <textarea disabled class="form-control" name="descripcion" readonly>{{ product.descripcion }}</textarea>
         <br>
     </div>
 
