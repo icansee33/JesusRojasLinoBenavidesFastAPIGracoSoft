@@ -115,10 +115,13 @@ async def base_cliente_iniciado(request: Request, db: Session = Depends(get_db))
 async def iniciar_sesion_template(request: Request):
     return templates.TemplateResponse("iniciarSesion.html.jinja", {"request": request})
 
-
+@app.get("/perfil_usuario/", response_class=HTMLResponse)
+async def perfil_usuario(request: Request, db: Session = Depends(get_db), usuario_actual: models.Usuario = Depends(obtener_usuario_activo_actual)):
+    return templates.TemplateResponse("perfil.html.jinja", {"request": request, "usuario": usuario_actual})
 
 @app.post('/iniciar_sesion', response_class=HTMLResponse)
 async def iniciar_sesion_post(request: Request,
+<<<<<<< HEAD
                               correo_electronico: str = Form(...),
                               contrasena: str = Form(...),
                               db: Session = Depends(get_db)):
@@ -128,6 +131,39 @@ async def iniciar_sesion_post(request: Request,
             return templates.TemplateResponse("iniciarSesion.html.jinja", 
                                               {"request": request, 
                                                "error": "Error, Parece que el correo o contraseña que usaste no son validos"})
+=======
+                   correo_electronico: str = Form(...),               
+                   contrasena: str = Form(...), 
+                   db: Session = Depends(get_db)):
+    user = autenticar_usuario(db, correo_electronico, contrasena)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Error, Incorrect username or password',
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+    tiempo_expiracion = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    nombre= f'{user.nombre} {user.apellido}'
+    token_acceso = auth.crear_token_acceso(
+        data={'cedula_identidad': user.cedula_identidad,
+              'nombre': nombre,
+              'tipo_usuario': user.tipo_usuario},
+        expires_delta=tiempo_expiracion
+    )
+    auth.obtener_usuario_actual(Session, token_acceso)
+    usuarioActual = auth.obtener_usuario_activo_actual()
+    #print("Usuario actual: ", usuarioActual.tipo_usuario)
+    request.session['cedula_identidad'] = user.cedula_identidad
+    request.session['tipo_usuario'] = user.tipo_usuario
+    
+    if user.tipo_usuario == "Cliente":
+        return RedirectResponse(url="/base/cliente/", status_code=status.HTTP_303_SEE_OTHER)
+    elif user.tipo_usuario == "Artesano":
+        return RedirectResponse(url="/base/artesano/", status_code=status.HTTP_303_SEE_OTHER)
+    else:
+        print("user", user.tipo_usuario )
+        return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+>>>>>>> aaf6978cfbd7cb20aff606c157b51d98d57aefc0
 
         tiempo_expiracion = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         nombre = f'{user.nombre} {user.apellido}'
@@ -252,7 +288,11 @@ async def update_producto_post(request: Request,
     product_update = schemas.ProductUpdate(
         id_producto=id_producto, id_artesano=id_artesano,
         nombre=nombre, descripcion=descripcion, cantidad_disponible=cantidad_disponible,categoria=categoria,
+<<<<<<< HEAD
          precio_unitario=precio_unitario, dimensiones=dimensiones, peso=peso, id_tipo=id_tipo, imagen=imagenpath, 
+=======
+        dimensiones=dimensiones, peso=peso, id_tipo=id_tipo, imagen=imagenpath, 
+>>>>>>> aaf6978cfbd7cb20aff606c157b51d98d57aefc0
     )
     crudProducto.update_product(db=db, product_id=id_producto, product=product_update)
     products = crudProducto.get_products(db)
@@ -418,7 +458,7 @@ async def update_tipo_producto_post(
 async def create_tipo_producto_template(request: Request):
     return templates.TemplateResponse("crearTipoProducto.html.jinja", {"request": request})
 
-
+"""
 #Pedido
 
 
@@ -580,6 +620,13 @@ async def accept_pedido_cliente(
 
 
 
+<<<<<<< HEAD
+=======
+"""
+
+
+
+>>>>>>> aaf6978cfbd7cb20aff606c157b51d98d57aefc0
 
 @app.post("/token", response_model=schemas.Token)
 async def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()):
@@ -596,10 +643,6 @@ async def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
-
-@app.get("/perfil_usuario/", response_class=HTMLResponse)
-async def perfil_usuario(request: Request, db: Session = Depends(get_db), usuario_actual: models.Usuario = Depends(obtener_usuario_activo_actual)):
-    return templates.TemplateResponse("perfil.html.jinja", {"request": request, "usuario": usuario_actual})
 
 @app.post("/perfil_usuario/update/")
 async def update_perfil_usuario(
@@ -728,3 +771,32 @@ async def delete_charge(charge_id: int, request: Request, db: Session = Depends(
     return templates.TemplateResponse("listaEncargoArtesano.html.jinja", {"request": request, "Orders": charges})
 
 """
+
+###############CALIFICAR##################
+
+@app.get("/calificar/{producto_id}", response_class=HTMLResponse)
+async def calificar(request: Request, producto_id: int, db: Session = Depends(get_db)):
+    product = crudProducto.get_product_by_id(db, producto_id)
+    if not product:
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
+    return templates.TemplateResponse("calificar.html.jinja", {"request": request, "product": product})
+
+@app.post("/submit_calificacion", response_class=HTMLResponse)
+async def submit_calificacion(request: Request, producto_id: int = Form(...), calificacion: int = Form(...), comentario: str = Form(...), db: Session = Depends(get_db)):
+    user_id = 1  # Aquí debes obtener el ID del usuario autenticado
+    calificacion_data = schemas.CalificacionCreate(
+        id_producto=producto_id,
+        id_cliente=user_id,
+        calificacion=calificacion,
+        comentario=comentario
+    )
+    crudCalificaciones.create_calificacion(db, calificacion_data)
+    return RedirectResponse(f"/listar_calificaciones/{producto_id}", status_code=HTTP_303_SEE_OTHER)
+
+####LISTAR CALIFICACION
+
+@app.get("/listar_calificaciones/{producto_id}", response_class=HTMLResponse)
+async def listar_calificaciones(request: Request, producto_id: int, db: Session = Depends(get_db)):
+    product = crudProducto.get_product_by_id(db, producto_id)
+    calificaciones = crudCalificaciones.get_calificaciones_by_producto(db, producto_id)
+    return templates.TemplateResponse("listar_calificaciones.html.jinja", {"request": request, "product": product, "calificaciones": calificaciones})

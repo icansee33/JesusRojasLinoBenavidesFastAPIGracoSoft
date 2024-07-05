@@ -146,14 +146,23 @@ class Respuesta(Generic[T], BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
+<<<<<<< HEAD
 
 #Calificaciones
+=======
+from pydantic import BaseModel
+
+>>>>>>> aaf6978cfbd7cb20aff606c157b51d98d57aefc0
 class CalificacionBase(BaseModel):
     id_producto: int
     id_cliente: int
     calificacion: int
     comentario: str
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> aaf6978cfbd7cb20aff606c157b51d98d57aefc0
 class CalificacionCreate(CalificacionBase):
     pass
 

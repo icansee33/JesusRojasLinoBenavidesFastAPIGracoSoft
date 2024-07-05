@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% extends 'baseArtesano.html.jinja' %}
 
 {% block content %}
@@ -20,4 +21,28 @@
     </tr>
     {% endfor %}
 </table>
+=======
+{% extends 'baseArtesano.html.jinja' %}
+
+{% block content %}
+<h1>Calificaciones para {{ product.nombre }}</h1>
+<img src="/{{product.imagen}}" alt="" width="250">
+
+<table id="formcenter">
+    <tr>
+        <th>ID de Calificación</th>
+        <th>Calificación</th>
+        <th>Comentario</th>
+        <th>ID de Cliente</th>
+    </tr>
+    {% for calificacion in calificaciones %}
+    <tr>
+        <td>{{ calificacion.id_calificacion }}</td>
+        <td>{{ calificacion.calificacion }}</td>
+        <td>{{ calificacion.comentario }}</td>
+        <td>{{ calificacion.id_cliente }}</td>
+    </tr>
+    {% endfor %}
+</table>
+>>>>>>> aaf6978cfbd7cb20aff606c157b51d98d57aefc0
 {% endblock %}
