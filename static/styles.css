@@ -1,93 +1,120 @@
-body {
-    background-color: rgb(241, 236, 236);
-    margin: 0;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    height: 100vh; /* Establece el cuerpo al menos al 100% del alto de la ventana */
-}
-
+/* Reseteo básico */
 html, body {
     margin: 0;
     padding: 0;
+    height: 100%;
+    width: 100%;
 }
 
+/* Estilo del cuerpo */
+body {
+    background-color: #f5f5dc; /* Color crema */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    text-align: center;
+    min-height: 100vh; /* Garantiza que el cuerpo ocupe al menos el 100% del alto de la ventana */
+}
+
+/* Estilo del encabezado */
 header {
-    background-color: hsl(174, 72%, 56%);
+    background-color: #4682b4; /* Azul más suave */
     color: #fff;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 10vh;
     width: 100%;
+    padding: 0 5%;
+    height: 10vh;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra para el encabezado */
 }
 
 header img {
     height: 80%;
-    width: 10%;
-    display: flex;
-    margin-left: 5%;
+    width: auto; /* Ajusta la altura automáticamente para mantener la proporción */
     border-radius: 3px;
+    margin-right: 20px; /* Espacio adicional entre la imagen y el contenido adyacente */
 }
 
+header nav {
+    display: flex;
+    align-items: center;
+}
+
+header nav a {
+    color: #fff;
+    text-decoration: none;
+    margin-left: 20px; /* Espacio entre los enlaces del encabezado */
+    font-size: 1em;
+}
+
+header nav a:first-child {
+    margin-left: 0; /* El primer enlace no necesita margen a la izquierda */
+}
+
+/* Estilo del banner */
 .banner {
     padding-top: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    max-width: 100%; /* Ajusta el ancho máximo del banner */
-    overflow: hidden; /* Oculta el contenido que se desborda */
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
     flex-shrink: 0;
-    
-    
 }
 
 .Banner_img {
-
-    width: 100%; /* Ajusta el ancho de la imagen al 100% del contenedor */
-    height: 25vh; /* Ajusta la altura automáticamente para mantener la proporción */
-    max-width: 100%; /* Ajusta el ancho máximo de la imagen */
-    width: 80%;
-
+    width: 80%; /* Ajusta el ancho de la imagen al 80% del contenedor */
+    height: auto; /* Mantiene la proporción de la imagen */
+    max-width: 100%;
+    border-radius: 5px; /* Bordes redondeados para la imagen */
 }
+
+/* Centro del formulario */
 #formcenter {
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
-
+/* Estilo del título */
 .titulo {
     display: flex;
     justify-content: center;
     align-items: center;
     margin-top: 20px;
+    font-size: 1.5em; /* Tamaño de fuente más grande para el título */
+    color: #4682b4; /* Azul más suave */
 }
 
+/* Estilo de los grupos de formularios */
 .form-group {
     display: flex;
     flex-direction: column;
     align-items: center;
     margin-bottom: 10px;
-}
-
-
-.footer {
-    background-color: hsl(174, 72%, 56%);
-    color: hsl(0, 0%, 100%);
-    margin-top: auto;
-    flex-direction: row;
     width: 100%;
-    justify-content: center; /* Centra el contenido horizontalmente */
-    overflow: hidden;
-    align-items: end;
-
-    /*background-color: hsl(174, 72%, 56%);
-    color: hsl(0, 0%, 100%);
-    margin-top: auto;
-    flex-direction: row;
-    width: 100%;*/
 }
 
+.form-group label, .form-group input {
+    width: 80%; /* Ajusta el ancho de los inputs y labels */
+    margin: 5px 0; /* Espaciado vertical entre elementos */
+}
 
-
+/* Estilo del pie de página */
+.footer {
+    background-color: #4682b4; /* Azul más suave */
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 10px 0;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1); /* Sombra para el pie de página */
+    position: relative; /* Permite un margen superior automático */
+}

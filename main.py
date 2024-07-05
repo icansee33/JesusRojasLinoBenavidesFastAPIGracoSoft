@@ -119,35 +119,35 @@ async def iniciar_sesion_template(request: Request):
 
 @app.post('/iniciar_sesion', response_class=HTMLResponse)
 async def iniciar_sesion_post(request: Request,
-                   correo_electronico: str = Form(...),               
-                   contrasena: str = Form(...), 
-                   db: Session = Depends(get_db)):
-    user = autenticar_usuario(db, correo_electronico, contrasena)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Error, Incorrect username or password',
-            headers={"WWW-Authenticate": "Bearer"}
-        )
-    tiempo_expiracion = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    nombre= f'{user.nombre} {user.apellido}'
-    token_acceso = auth.crear_token_acceso(
-        data={'cedula_identidad': user.cedula_identidad,
-              'nombre': nombre,
-              'tipo_usuario': user.tipo_usuario},
-        expires_delta=tiempo_expiracion
-    )
-    request.session['cedula_identidad'] = user.cedula_identidad
-    request.session['tipo_usuario'] = user.tipo_usuario
-    
-    if user.tipo_usuario == "Cliente":
-        return RedirectResponse(url="/base/cliente/", status_code=status.HTTP_303_SEE_OTHER)
-    elif user.tipo_usuario == "Artesano":
-        return RedirectResponse(url="/base/artesano/", status_code=status.HTTP_303_SEE_OTHER)
-    else:
-        print("user", user.tipo_usuario )
-        return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+                              correo_electronico: str = Form(...),
+                              contrasena: str = Form(...),
+                              db: Session = Depends(get_db)):
+    try:
+        user = auth.autenticar_usuario(db, correo_electronico, contrasena)
+        if not user:
+            return templates.TemplateResponse("iniciarSesion.html.jinja", 
+                                              {"request": request, 
+                                               "error": "Error, Parece que el correo o contraseña que usaste no son validos"})
 
+        tiempo_expiracion = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        nombre = f'{user.nombre} {user.apellido}'
+        token_acceso = auth.crear_token_acceso(
+            data={'cedula_identidad': user.cedula_identidad,
+                  'nombre': nombre,
+                  'tipo_usuario': user.tipo_usuario},
+            expires_delta=tiempo_expiracion
+        )
+        request.session['cedula_identidad'] = user.cedula_identidad
+        request.session['tipo_usuario'] = user.tipo_usuario
+        
+        if user.tipo_usuario == "Cliente":
+            return RedirectResponse(url="/base/cliente/", status_code=status.HTTP_303_SEE_OTHER)
+        elif user.tipo_usuario == "Artesano":
+            return RedirectResponse(url="/base/artesano/", status_code=status.HTTP_303_SEE_OTHER)
+        else:
+            return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
 
 @app.middleware("http")
 async def create_auth_header(request: Request, call_next):
@@ -171,7 +171,6 @@ async def create_auth_header(request: Request, call_next):
         
     response = await call_next(request)
     return response
-
 
 
 
