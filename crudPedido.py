@@ -28,7 +28,7 @@ def get_orders(db: Session, skip: int = 0, limit: int = 10):
     return db.query(models.Pedido).offset(skip).limit(limit).all()
 
 def update_order(db: Session, order_id: int, order: schemas.PedidoUpdate):
-    db_order = db.query(models.Pedido).filter(models.Pedido.id_pedido == order_id).first()    
+    db_order = get_order_by_id(db, order_id)   
     if db_order is None:
         for key, value in order.dict().items():
             if value is not None:
@@ -37,14 +37,15 @@ def update_order(db: Session, order_id: int, order: schemas.PedidoUpdate):
         db.refresh(db_order)
     return db_order
 
+
 def get_orders_product(db: Session):
     return db.query(models.Pedido, models.Producto).join(models.Producto, models.Pedido.id_producto == models.Producto.id_producto).all()
 
 
-def cancel_order(db: Session, product_id: int):
-    db_product = get_order_by_id(db, product_id)
-    if db_product is None:
+def cancel_order(db: Session, order_id: int):
+    db_order = get_order_by_id(db, order_id)
+    if db_order is None:
         return None
-    db.delete(db_product)
+    db.delete(db_order)
     db.commit()
-    return db_product
+    return db_order

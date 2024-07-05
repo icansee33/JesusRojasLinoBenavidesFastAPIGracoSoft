@@ -29,7 +29,7 @@
 
     <div>
         <label for="metodo_envio">Método de envío: </label><br>
-        <select class="form-control" name="metodo_envio" required>
+        <select  class="form-control" name="metodo_envio" required>
             <option value="agencia" {% if metodo_envio == "agencia" %}selected{% endif %}>Agencia de envío de paquetes</option>
             <option value="retiro" {% if metodo_envio == "retiro" %}selected{% endif %}>Retiro en la fábrica del productor</option>
         </select>

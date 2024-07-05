@@ -27,7 +27,7 @@
         <td>
             <div>
                 <form action="/order/delete/{{ order.id_pedido }}" method="post" style="display:inline;">
-                <input type="hidden" class="form-control" name="id_pedido"  value="{{ order.id_pedido }}">
+                <input type="hidden" class="form-control" name="order_id"  value="{{ order.id_pedido }}">
                 <button type="submit">Delete</button>
             </form>
 

@@ -460,8 +460,9 @@ async def read_pedidos_artesano(request: Request, db: Session = Depends(get_db))
     orders = crudPedido.get_orders_product(db)
     return templates.TemplateResponse("listaPedidoArtesano.html.jinja", {"request": request, "Orders": orders})
 
-@app.post("/order/delete/{order_id}/", response_class=HTMLResponse)
+@app.post("/order/delete/{order_id}", response_class=HTMLResponse)
 async def delete_order(request: Request, order_id: int, db: Session = Depends(get_db)):
+    print("Order id: ", order_id)
     crudPedido.cancel_order(db=db, order_id=order_id)
     return RedirectResponse(url='/order/client/orders/', status_code=303)
 
@@ -539,16 +540,17 @@ async def set_up_pedido_artesano(
     cantidad_productos: int = Form(...),
     metodo_envio: str = Form(...),
     monto_total: float = Form(...), 
+    fecha_pedido: date = Form(...),
     db: Session = Depends(get_db)
 ):
     cedula_identidad = request.session.get('cedula_identidad')
     if not cedula_identidad:
         raise HTTPException(status_code=401, detail="Unauthorized. Please log in as an artesano.")
     
-    fecha_pedido = date.today()
-    estado = "Solicitado"
+    #fecha_pedido = date.today()
+    estado = "Procesando"
 
-    order_update = schemas.PedidoCreate(
+    order_update = schemas.PedidoUpdate(
         id_pedido=id_pedido,
         id_producto=id_producto,
         cedula_identidad=int(cedula_identidad),
@@ -558,9 +560,12 @@ async def set_up_pedido_artesano(
         monto_total=monto_total,
         estado=estado
     )
-    crudPedido.update_order(db, order=order_update)
+    crudPedido.update_order(db=db, order=order_update, order_id=id_pedido)
     orders = crudPedido.get_orders(db)
+    print("Id:", order_update)
     return templates.TemplateResponse("listaPedidoArtesano.html.jinja", {"request": request, "Orders": orders})
+
+
 
 # Ruta para que el cliente acepte un pedido
 @app.post(  "/order/client/accept", response_class=HTMLResponse)

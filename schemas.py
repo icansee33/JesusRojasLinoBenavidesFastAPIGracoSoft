@@ -79,7 +79,7 @@ class Review(ReviewBase):
         orm_mode = True
 
 #Encargo
-class ChargoBase(BaseModel):
+class ChargeBase(BaseModel):
     id_producto: int
     cedula_identidad: int
     descripcion_encargo: str
@@ -88,13 +88,13 @@ class ChargoBase(BaseModel):
     metodo_envio: str
     estado_encargo: str
 
-class ChargeCreate(ChargoBase):
+class ChargeCreate(ChargeBase):
     pass
 
-class ChargeUpdate(ChargoBase):
+class ChargeUpdate(ChargeBase):
     id_encargo: int
 
-class Pedido(ChargoBase):
+class Charge(ChargeBase):
     id_encargo: int
 
     class Config:

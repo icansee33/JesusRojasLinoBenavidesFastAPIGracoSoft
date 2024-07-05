@@ -1,7 +1,7 @@
 {% extends 'baseArtesano.html.jinja' %}
 
 {% block content %}
-<h1>{% block title %} Actualizar Pedido {% endblock %}</h1>
+<h1>{% block title %} Cotización {% endblock %}</h1>
 
 <form action="/order/artesian/update/" method="post">
     <div>
@@ -20,11 +20,11 @@
         <br>
     </div>
 
+
+
     <div>
-        <select state="disabled" class="form-control" name="metodo_envio" required>
-            <option value="agencia" {% if metodo_envio == "agencia" %}selected{% endif %}>Agencia de envío de paquetes</option>
-            <option value="retiro" {% if metodo_envio == "retiro" %}selected{% endif %}>Retiro en la fábrica del productor</option>
-        </select>
+        <label for="monto_total">Monto total a pagar: </label><br>
+        <input type="number" class="form-control" name="monto_total" value="{{ order.monto_total }}" readonly>
         <br>
     </div>
 
@@ -34,8 +34,7 @@
     </div>
 
     <div>
-        <label for="monto_total">Monto total a pagar: </label><br>
-        <input type="number" class="form-control" name="monto_total" value="{{ order.monto_total }}" readonly>
+        <input type="hidden" class="form-control" name="metodo_envio" value="{{ order.metodo_envio }}" required>
         <br>
     </div>
 
