@@ -8,7 +8,7 @@ from sqlalchemy import Double
 from starlette.middleware.sessions import SessionMiddleware
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-import crudUsuario, models, schemas, crudPedido, crudEncargo, seguridad.auth as auth, crudResena, crudTipoProducto,crudProducto
+import crudUsuario, models, schemas, crudPedido, crudEncargo, seguridad.auth as auth, crudResena, crudTipoProducto,crudProducto, crudCalificaciones
 from seguridad.auth import ACCESS_TOKEN_EXPIRE_MINUTES, autenticar_usuario, crear_token_acceso, obtener_usuario_activo_actual
 from fastapi.responses import JSONResponse, RedirectResponse, HTMLResponse
 from starlette.status import HTTP_303_SEE_OTHER, HTTP_400_BAD_REQUEST
@@ -430,6 +430,15 @@ async def read_productos_pedidos_cliente(request: Request, db: Session = Depends
     print("Client list: ", products)
     return templates.TemplateResponse("catalagoPedidoCliente.html.jinja", {"request": request, "Products": products})
 
+
+# Ruta para redirigir al artesano a la interfaz de establecer pedido
+@app.get("/order/artesan/update/{order_id}", response_class=HTMLResponse)
+async def set_up_pedido_artesano_template(request: Request, order_id: int, db: Session = Depends(get_db)):
+    order = crudPedido.get_order_by_id(db, order_id)
+    if order is None:
+        raise HTTPException(status_code=404, detail="Pedido no encontrado")
+    return templates.TemplateResponse("modificarPedidoArtesano.html.jinja", {"request": request, "order": order})
+
 # Ruta para redirigir al cliente a la interfaz de solicitar pedido, cuando se abra la interfaz debe saber el id del producto
 @app.get("/order/client/request/{product_id}", response_class=HTMLResponse)
 async def solicitar_producto(request: Request, product_id: int, db: Session = Depends(get_db)):
@@ -438,35 +447,34 @@ async def solicitar_producto(request: Request, product_id: int, db: Session = De
         raise HTTPException(status_code=404, detail="Producto no encontrado")
     return templates.TemplateResponse("crearPedidoCliente.html.jinja", {"request": request, "product": product})
 
-# Ruta para redirigir al artesano a la interfaz de establecer pedido
-@app.get("/order/artesan/update/{order_id}", response_class=HTMLResponse)
-async def set_up_pedido_artesano_template(request: Request, order_id: int, db: Session = Depends(get_db)):
-    order = crudPedido.get_order_by_id(db, order_id)
-    return templates.TemplateResponse("modificarPedidoArtesano.html.jinja", {"request": request, "Orders": order})
 
 # Ruta para redirigir al cliente a la lista de sus pedidos
 @app.get("/order/client/orders/", response_class=HTMLResponse, name="read_pedidos_cliente")
 async def read_pedidos_cliente(request: Request, db: Session = Depends(get_db)):
-    orders = crudPedido.get_orders(db)
+    orders = crudPedido.get_orders_product(db)
     return templates.TemplateResponse("listaPedidoCliente.html.jinja", {"request": request, "Orders": orders})
 
 # Ruta para redirigir al artesano al catálogo de pedidos (le aparecen los pedidos de todos los clientes)
-@app.get("/order/product/artesan/list/", response_class=HTMLResponse, name="read_pedidos_artesano")
+@app.get("/order/artesan/list", response_class=HTMLResponse, name="read_pedidos_artesano")
 async def read_pedidos_artesano(request: Request, db: Session = Depends(get_db)):
-    orders = crudPedido.get_orders(db)
+    orders = crudPedido.get_orders_product(db)
     return templates.TemplateResponse("listaPedidoArtesano.html.jinja", {"request": request, "Orders": orders})
+
+@app.post("/order/delete/{order_id}/", response_class=HTMLResponse)
+async def delete_order(request: Request, order_id: int, db: Session = Depends(get_db)):
+    crudPedido.cancel_order(db=db, order_id=order_id)
+    return RedirectResponse(url='/order/client/orders/', status_code=303)
 
 
 @app.post("/order/calculate")
 async def calcular_monto(
     request: Request,
     id_producto: int = Form(...),
-    cedula_identidad: str = Form(...),
     cantidad_productos: int = Form(...),
     metodo_envio: str = Form(...),
     precio_unitario: float = Form(...),
     db: Session = Depends(get_db)
-):
+):  
     # Validar disponibilidad del producto
     product = crudProducto.get_product_by_id(db, id_producto)
     if not product or product.cantidad_disponible < cantidad_productos:
@@ -480,7 +488,6 @@ async def calcular_monto(
     return templates.TemplateResponse("crearPedidoCliente.html.jinja", {
         "request": request,
         "product": product,
-        "cedula_identidad": cedula_identidad,
         "cantidad_productos": cantidad_productos,
         "metodo_envio": metodo_envio,
         "precio_unitario": precio_unitario,
@@ -491,13 +498,15 @@ async def calcular_monto(
 async def solicitar_pedido(
     request: Request,
     id_producto: int = Form(...),
-    cedula_identidad: str = Form(...),
     cantidad_productos: int = Form(...),
     metodo_envio: str = Form(...),
-    precio_unitario: float = Form(...), 
     monto_total: float = Form(...), 
     db: Session = Depends(get_db)
 ):
+    cedula_identidad = request.session.get('cedula_identidad')
+    if not cedula_identidad:
+        raise HTTPException(status_code=401, detail="Unauthorized. Please log in as an artesano.")
+    
     # Validar disponibilidad del producto
     product = crudProducto.get_product_by_id(db, id_producto)
     if not product or product.cantidad_disponible < cantidad_productos:
@@ -508,22 +517,53 @@ async def solicitar_pedido(
 
     order = schemas.PedidoCreate(
         id_producto=id_producto,
-        cedula_identidad=cedula_identidad,
+        cedula_identidad=int(cedula_identidad),
         cantidad_productos=cantidad_productos,
         metodo_envio=metodo_envio,
         fecha_pedido=fecha_pedido,
-        precio_unitario=precio_unitario,
         monto_total=monto_total,
         estado=estado
     )
     
     crudPedido.create_order(db, order)
-    products = crudProducto.get_products(db)
-    return templates.TemplateResponse("catalagoPedidoCliente.html.jinja", {"request": request, "Products": products})
+    orders = crudPedido.get_orders_product(db)
+    return templates.TemplateResponse("listaPedidoCliente.html.jinja", {"request": request, "Orders": orders})
 
+
+#Ruta para que el artesano establezca un pedido
+@app.post("/order/artesian/update/", response_model=schemas.Pedido)
+async def set_up_pedido_artesano(
+    request: Request,
+    id_pedido: int = Form(...),
+    id_producto: int = Form(...),
+    cantidad_productos: int = Form(...),
+    metodo_envio: str = Form(...),
+    monto_total: float = Form(...), 
+    db: Session = Depends(get_db)
+):
+    cedula_identidad = request.session.get('cedula_identidad')
+    if not cedula_identidad:
+        raise HTTPException(status_code=401, detail="Unauthorized. Please log in as an artesano.")
+    
+    fecha_pedido = date.today()
+    estado = "Solicitado"
+
+    order_update = schemas.PedidoCreate(
+        id_pedido=id_pedido,
+        id_producto=id_producto,
+        cedula_identidad=int(cedula_identidad),
+        cantidad_productos=cantidad_productos,
+        metodo_envio=metodo_envio,
+        fecha_pedido=fecha_pedido,
+        monto_total=monto_total,
+        estado=estado
+    )
+    crudPedido.update_order(db, order=order_update)
+    orders = crudPedido.get_orders(db)
+    return templates.TemplateResponse("listaPedidoArtesano.html.jinja", {"request": request, "Orders": orders})
 
 # Ruta para que el cliente acepte un pedido
-@app.post("/order/client/accept", response_class=HTMLResponse)
+@app.post(  "/order/client/accept", response_class=HTMLResponse)
 async def accept_pedido_cliente(
     request: Request,
     id_pedido: int = Form(...),
@@ -538,6 +578,8 @@ async def accept_pedido_cliente(
 
     orders = crudPedido.get_orders(db)
     return templates.TemplateResponse("listaPedidoCliente.html.jinja", {"request": request, "orders": orders})
+
+
 
 
 @app.post("/token", response_model=schemas.Token)
@@ -600,6 +642,33 @@ async def update_perfil_usuario(
 
 
 
+#Calificaciones
+@app.get("/calificar/{producto_id}", response_class=HTMLResponse)
+async def calificar(request: Request, producto_id: int, db: Session = Depends(get_db)):
+    product = crudProducto.get_product_by_id(db, producto_id)
+    if not product:
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
+    return templates.TemplateResponse("calificar.html.jinja", {"request": request, "product": product})
+
+@app.post("/submit_calificacion", response_class=HTMLResponse)
+async def submit_calificacion(request: Request, producto_id: int = Form(...), calificacion: int = Form(...), comentario: str = Form(...), db: Session = Depends(get_db)):
+    user_id = 1  # Aquí debes obtener el ID del usuario autenticado
+    calificacion_data = schemas.CalificacionCreate(
+        id_producto=producto_id,
+        id_cliente=user_id,
+        calificacion=calificacion,
+        comentario=comentario
+    )
+    crudCalificaciones.create_calificacion(db, calificacion_data)
+    return RedirectResponse(f"/listar_calificaciones/{producto_id}", status_code=HTTP_303_SEE_OTHER)
+
+####LISTAR CALIFICACION
+
+@app.get("/listar_calificaciones/{producto_id}", response_class=HTMLResponse, name="listarCalificaciones")
+async def listarCalificaciones(request: Request, producto_id: int, db: Session = Depends(get_db)):
+    product = crudProducto.get_product_by_id(db, producto_id)
+    calificaciones = crudCalificaciones.get_calificaciones_by_producto(db, producto_id)
+    return templates.TemplateResponse("Listar_calificaciones.html.jinja", {"request": request, "product": product, "calificaciones": calificaciones})
 
 """
 #Encargo

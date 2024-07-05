@@ -33,7 +33,8 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     email: Optional[str] = None
 
-#productoooo
+
+#Producto
 class ProductBase(BaseModel):
     id_artesano: int
     id_tipo: int
@@ -117,7 +118,7 @@ class TypeProduct(TypeProductBase):
 #Pedido
 class PedidoBase(BaseModel):
     id_producto: int
-    cedula_identidad: str
+    cedula_identidad: int
     fecha_pedido: date
     cantidad_productos: int
     metodo_envio: str
@@ -128,13 +129,7 @@ class PedidoCreate(PedidoBase):
     pass
 
 class PedidoUpdate(BaseModel):
-    id_producto: int
-    cedula_identidad: str
-    cantidad_productos: int
-    metodo_envio: str
-    fecha_pedido: date
-    monto_total: float
-    estado: str
+    id_pedido: int
 
 class Pedido(PedidoBase):
     id_pedido: int
@@ -150,3 +145,20 @@ class Respuesta(Generic[T], BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+
+
+#Calificaciones
+class CalificacionBase(BaseModel):
+    id_producto: int
+    id_cliente: int
+    calificacion: int
+    comentario: str
+    
+class CalificacionCreate(CalificacionBase):
+    pass
+
+class Calificacion(CalificacionBase):
+    id_calificacion: int
+
+    class Config:
+        orm_mode = True

@@ -1,26 +1,33 @@
-{% extends 'baseArtesano.html.jinja' %}
+{% extends 'baseCliente.html.jinja' %}
 
 {% block content %}
-<h1>{% block title %} Lista de Pedidos {% endblock %}</h1>
+<h1>{% block title %} Sus pedidos {% endblock %}</h1>
     
 <table id="formcenter">
     <tr>
         <th>ID del pedido</th>
-        <th>Cliente</th>
-        <th>Fecha del pedido</th>
-        <th>N° de productos</th>
+        <th>Producto</th>
+        <th>Fecha</th>
+        <th>Monto</th>
+        <th>Unidades</th>
+        <th>Método de envio</th>
         <th>Estado</th>
-        <th>Acciones</th>
+        <th>Imagen</th>
     </tr>
-    {% for order in Orders %}
+    {% for order, product in Orders %}
     <tr>
         <td>{{ order.id_pedido }}</td>
-        <td>{{ order.id_cliente }}</td>
+        <td>{{ product.nombre }}</td>
         <td>{{ order.fecha_pedido }}</td>
+        <td>{{ order.monto_total }}</td>
         <td>{{ order.cantidad_productos }}</td>
+        <td>{{ order.metodo_envio }}</td>
         <td>{{ order.estado }}</td>
+        <td><img src="/{{ product.imagen }}" alt="{{ product.nombre }}" width="100"></td>
         <td>
-            <button onclick="window.location.href='/artisan/order/update/{{ order.id_pedido }}'">Actualizar</button>
+           
+           <button value="Establecer" onclick="window.location.href='/order/artesan/update/{{order.id_pedido}}' ;" >Establecer</button> 
+            <br>
         </td>
     </tr>
     {% endfor %}

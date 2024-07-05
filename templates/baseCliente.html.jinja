@@ -12,11 +12,11 @@
         <header>
             <img src="/static/img/Logo.png" alt="Logo">
                 <nav>
-                    <a href="{{url_for('create_producto_template')}}">Catálogo</a>
-                    <a href="{{url_for('create_tipo_producto_template')}}">Encargo</a>
+                    <a>Encargo</a>
                     <a>Perfil</a>
+                    <a href="{{url_for('read_productos_pedidos_cliente')}}">Has un Pedido</a>
+                    <a href="{{url_for('read_pedidos_cliente')}}">Tus Pedidos</a>
                     <a href="{{url_for('home_no_iniciado')}}">Salir</a>  
-                    <a href="{{url_for('read_productos_pedidos_cliente')}}">Productos para pedidos</a>
                 </nav>
         </header>
         
@@ -26,8 +26,10 @@
             </div>
             
 
-        <div class="content">
-          {% block content %} {% endblock %}
-        </div> 
+    <div class="content">
+        {% block content %}
+        {% endblock %}
+    </div>
+
     </body>
 </html>

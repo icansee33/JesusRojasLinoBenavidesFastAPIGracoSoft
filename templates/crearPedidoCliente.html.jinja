@@ -3,12 +3,9 @@
 {% block content %}
 <h1>{% block title %} Realice su pedido {% endblock %}</h1>
 
-
-<form action="{{ url_for('solicitar_pedido') }}" method="post">
-
+<form action="/order/calculate" method="post">
     <div>
-        <label for="id_producto">ID de Producto: </label><br>
-        <input type="text" class="form-control" name="id_producto" value="{{ product.id_producto }}">
+        <input type="hidden" class="form-control" name="id_producto" value="{{ product.id_producto }}" readonly>
         <br>
     </div>
 
@@ -20,7 +17,7 @@
 
     <div>
         <label for="precio_unitario">Precio por unidad: </label><br>
-        <input type="number" class="form-control" name="precio_unitario" value="{{product.precio_unitario }}" required>
+        <input type="number" class="form-control" name="precio_unitario" value="{{ product.precio_unitario }}" required>
         <br>
     </div>
 
@@ -41,29 +38,22 @@
 
     <div>
         <label for="cantidad_productos">Cantidad de este producto que desea llevar: </label><br>
-        <input type="number" class="form-control" name="cantidad_productos" value="{{ cantidad_productos | default('') }}" required>
+        <input type="number" class="form-control" name="cantidad_productos" min="1" max="{{ product.cantidad_productos }}" value="{{ cantidad_productos | default('') }}" required>
         <br>
     </div>
 
     <div>
         <label for="monto_total">Monto total a pagar: </label><br>
-        <input type="number" class="form-control" name="monto_total" value="{{ monto_total | default('') }}" readonly>
+        <input disabled type="number" class="form-control" name="monto_total" value="{{ monto_total | default('') }}" readonly>
         <br>
     </div>
 
-    <form action="/order/calculate" method="post" style="display:inline;">
-        <button type="submit">Calcular</button>
-    </form>
-
-
-    <input type="submit" value="Submit">
-
+    <button type="submit">Calcular</button>
 </form>
 
 {% if monto_total %}
 <form method="post" action="/order/create">
     <input type="hidden" name="id_producto" value="{{ product.id_producto }}">
-    <input type="hidden" name="cedula_identidad" value="{{ cedula_identidad }}">
     <input type="hidden" name="cantidad_productos" value="{{ cantidad_productos }}">
     <input type="hidden" name="metodo_envio" value="{{ metodo_envio }}">
     <input type="hidden" name="precio_unitario" value="{{ precio_unitario }}">
@@ -71,9 +61,4 @@
     <input type="submit" value="Confirmar Pedido">
 </form>
 {% endif %}
-
-
-
-
-
 {% endblock %}

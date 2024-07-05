@@ -1,42 +1,45 @@
 {% extends 'baseCliente.html.jinja' %}
 
 {% block content %}
-<h1>{% block title %} Realice sus pedidos {% endblock %}</h1>
+<h1>{% block title %} Sus pedidos {% endblock %}</h1>
     
 <table id="formcenter">
     <tr>
-        <th>ID de Producto</th>
-        <th>Nombre</th>
-        <th>Descripcion</th>
-        <th>Categoria</th>
-        <th>Dimensiones</th>
-        <th>Peso</th>
+        <th>ID del pedido</th>
+        <th>Producto</th>
+        <th>Fecha</th>
+        <th>Monto</th>
+        <th>Unidades</th>
+        <th>Método de envio</th>
+        <th>Estado</th>
         <th>Imagen</th>
     </tr>
-    {% for product in Products %}
+    {% for order, product in Orders %}
     <tr>
-        <td>{{ product.id_producto }}</td>
+        <td>{{ order.id_pedido }}</td>
         <td>{{ product.nombre }}</td>
-        <td>{{ product.descripcion }}</td>
-        <td>{{ product.categoria }}</td>
-        <td>{{ product.dimensiones }}</td>
-        <td>{{ product.peso }}</td>
-        <td><img src="/{{product.imagen}}" alt="{{ product.nombre }}" width="100"></td>
+        <td>{{ order.fecha_pedido }}</td>
+        <td>{{ order.monto_total }}</td>
+        <td>{{ order.cantidad_productos }}</td>
+        <td>{{ order.metodo_envio }}</td>
+        <td>{{ order.estado }}</td>
+        <td><img src="/{{ product.imagen }}" alt="{{ product.nombre }}" width="100"></td>
         <td>
             <div>
-                <form action="/order/create/{{ product.id_producto }}" method="post" style="display:inline;">
-                <input type="hidden" class="form-control" name="id_producto"  value="{{product.id_producto}}">
+                <form action="/order/delete/{{ order.id_pedido }}" method="post" style="display:inline;">
+                <input type="hidden" class="form-control" name="id_pedido"  value="{{ order.id_pedido }}">
                 <button type="submit">Delete</button>
             </form>
+
+            <div>
+                <form action="/order/client/accept{{ order.id_pedido }}" method="post" style="display:inline;">
+                <input type="hidden" class="form-control" name="id_producto"  value="{{ order.id_pedido }}">
+                <button type="submit">Aceptar</button>
+            </form>
+
             <br>
         </td>
-
-    </div>
-
     </tr>
-
-
-
     {% endfor %}
 </table>
 {% endblock %}
