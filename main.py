@@ -442,7 +442,6 @@ async def create_tipo_producto_template(request: Request):
 
 #Pedido
 
-
 # Ruta para redirigir al cliente al catálogo de productos
 @app.get("/order/client/list/", response_class=HTMLResponse, name="read_productos_pedidos_cliente")
 async def read_productos_pedidos_cliente(request: Request, db: Session = Depends(get_db)):
@@ -468,10 +467,11 @@ async def solicitar_producto(request: Request, product_id: int, db: Session = De
     return templates.TemplateResponse("crearPedidoCliente.html.jinja", {"request": request, "product": product})
 
 
+
 #Reedirigir al cliente a la lista de sus pedidos
 @app.get("/order/client/orders/", response_class=HTMLResponse, name="read_pedidos_cliente")
 async def read_pedidos_cliente(request: Request, db: Session = Depends(get_db)):
-    orders = crudPedido.get_orders_by_user(db)
+    orders = crudPedido.get_orders_product(db)
     return templates.TemplateResponse("listaPedidoCliente.html.jinja", {"request": request, "Orders": orders})
 
 
@@ -553,7 +553,7 @@ async def solicitar_pedido(
 
 
 #Ruta para que el artesano establezca un pedido
-@app.post("/order/artesian/update/", response_model=schemas.Pedido)
+@app.post("/order/artesian/update/", response_class=HTMLResponse)
 async def set_up_pedido_artesano(
     request: Request,
     id_pedido: int = Form(...),
@@ -567,9 +567,6 @@ async def set_up_pedido_artesano(
     cedula_identidad = request.session.get('cedula_identidad')
     if not cedula_identidad:
         raise HTTPException(status_code=401, detail="Unauthorized. Please log in as an artesano.")
-    
-    #fecha_pedido = date.today()
-    estado = "Procesando"
 
     order_update = schemas.PedidoUpdate(
         id_pedido=id_pedido,
@@ -579,31 +576,54 @@ async def set_up_pedido_artesano(
         metodo_envio=metodo_envio,
         fecha_pedido=fecha_pedido,
         monto_total=monto_total,
-        estado=estado
+        estado="Procesando"
     )
-    crudPedido.update_order(db=db, order=order_update, order_id=id_pedido)
+    crudPedido.update_order(db=db,  order_id=id_pedido , order=order_update)
+
+    # Obtener las órdenes actualizadas
     orders = crudPedido.get_orders_product(db)
-    print("Id:", order_update)
+    print("Órdenes actualizadas:")
+    for order in orders:
+        print(order)
     return templates.TemplateResponse("listaPedidoArtesano.html.jinja", {"request": request, "Orders": orders})
 
 
 
-# Ruta para que el cliente acepte un pedido
-@app.post("/order/client/accept", response_class=HTMLResponse)
+#Ruta para que el artesano establezca un pedido
+@app.post( "/order/client/accept/", response_class=HTMLResponse)
 async def accept_pedido_cliente(
     request: Request,
     id_pedido: int = Form(...),
+    id_producto: int = Form(...),
+    cantidad_productos: int = Form(...),
+    metodo_envio: str = Form(...),
+    monto_total: float = Form(...), 
+    fecha_pedido: date = Form(...),
     db: Session = Depends(get_db)
-):
-    order = crudPedido.get_order_by_id(db, order_id=id_pedido)
-    if order:
-        order.estado = "Aceptado"
-        product = crudProducto.get_product_by_id(db, order.id_producto)
-        product.cantidad_disponible -= order.cantidad_productos
-        db.commit()
 
-    orders = crudPedido.get_orders(db)
-    return templates.TemplateResponse("listaPedidoCliente.html.jinja", {"request": request, "orders": orders})
+):
+    cedula_identidad = request.session.get('cedula_identidad')
+    if not cedula_identidad:
+        raise HTTPException(status_code=401, detail="Unauthorized. Please log in as an artesano.")
+
+    order_update = schemas.PedidoUpdate(
+        id_pedido=id_pedido,
+        id_producto=id_producto,
+        cedula_identidad=int(cedula_identidad),
+        cantidad_productos=cantidad_productos,
+        metodo_envio=metodo_envio,
+        fecha_pedido=fecha_pedido,
+        monto_total=monto_total,
+        estado="Aceptado"
+    )
+    crudPedido.update_order(db=db,  order_id=id_pedido , order=order_update)
+
+    # Obtener las órdenes actualizadas
+    orders = crudPedido.get_orders_product(db)
+    print("Órdenes actualizadas:")
+    for order in orders:
+        print(order)
+    return templates.TemplateResponse("listaPedidoCliente.html.jinja", {"request": request, "Orders": orders})
 
 
 
@@ -697,62 +717,179 @@ async def listarCalificaciones(request: Request, producto_id: int, db: Session =
 
 
 
-"""
+
 #Encargo
-@app.post("/charge/create", response_class=HTMLResponse)
-async def create_charge_post(request: Request, 
-                             id_producto: int = Form(...),
-                             cedula_identidad: int = Form(...),
-                             descripcion_encargo: str = Form(...),
-                             fecha_encargo: date = Form(...),
-                             metodo_envio: str = Form(...),
-                             estado_encargo: str = Form(...),
-                             db: Session = Depends(get_db)):
-    charge = schemas.ChargeCreate(
-        id_producto=id_producto,
-        cedula_identidad=cedula_identidad,
-        descripcion_encargo=descripcion_encargo,
-        fecha_encargo=fecha_encargo,
-        metodo_envio=metodo_envio,
-        estado_encargo=estado_encargo
-    )
-    crudEncargo.create_charge(db=db, charge=charge)
-    charges = crudEncargo.get_charge(db)
-    return templates.TemplateResponse("listaEncargoArtesano.html.jinja", {"request": request, "Orders": charges})
 
+# Ruta para redirigir al cliente al catálogo de productos
+@app.get("/charge/client/list/", response_class=HTMLResponse, name="read_productos_encargos_cliente")
+async def read_productos_encargos_cliente(request: Request, db: Session = Depends(get_db)):
+    products = crudProducto.get_products(db)
+    return templates.TemplateResponse("catalagoEncargoCliente.html.jinja", {"request": request, "Products": products})
 
-@app.get("/charge/list", response_class=HTMLResponse)
-async def read_charges(request: Request, db: Session = Depends(get_db)):
-    charges = crudEncargo.get_charge(db=db)
-    return templates.TemplateResponse("listaEncargoArtesano.html.jinja", {"request": request, "Orders": charges})
-
-@app.get("/charge/update/{charge_id}", response_class=HTMLResponse)
-async def update_charge_template(charge_id: int, request: Request, db: Session = Depends(get_db)):
-    charge = crudEncargo.get_charge_by_id(db=db, charge_id=charge_id)
+# Ruta para redirigir al artesano a la interfaz de establecer encargo
+@app.get("/charge/artesan/update/{charge_id}", response_class=HTMLResponse)
+async def set_up_encargo_artesano_template(request: Request, charge_id: int, db: Session = Depends(get_db)):
+    charge = crudEncargo.get_charge_by_id(db, charge_id)
+    if charge is None:
+        raise HTTPException(status_code=404, detail="Encargo no encontrado")
     return templates.TemplateResponse("modificarEncargoArtesano.html.jinja", {"request": request, "charge": charge})
 
-@app.post("/charge/update/{charge_id}", response_class=HTMLResponse)
-async def update_charge_post(
-                            request: Request,
-                            charge_id:  str = Form(...),
-                            descripcion_encargo: str = Form(...),
-                            metodo_envio: str = Form(...),
-                            estado_encargo: str = Form(...), 
-                            db: Session = Depends(get_db)):
-    charge_update = schemas.ChargeUpdate(
-        id_encargo=charge_id,
-        descripcion_encargo=descripcion_encargo,
-        metodo_envio=metodo_envio,
-        estado_encargo=estado_encargo
-    )
-    crudEncargo.update_charge(db=db, charge_id=charge_id, charge=charge_update)
-    charges = crudEncargo.get_charge(db)
-    return templates.TemplateResponse("listaEncargoArtesano.html.jinja", {"request": request, "Orders": charges})
+# Ruta para redirigir al cliente a la interfaz de solicitar encargo, cuando se abra la interfaz debe saber el id del producto
+@app.get("/charge/client/request/{product_id}", response_class=HTMLResponse)
+async def solicitar_producto(request: Request, product_id: int, db: Session = Depends(get_db)):
+    product = crudProducto.get_product_by_id(db, product_id)
+    if product is None:
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
+    return templates.TemplateResponse("crearEncargoCliente.html.jinja", {"request": request, "product": product})
+
+# Redirigir al cliente a la lista de sus encargos
+@app.get("/charge/client/charges/", response_class=HTMLResponse, name="read_encargos_cliente")
+async def read_encargos_cliente(request: Request, db: Session = Depends(get_db)):
+    charges = crudEncargo.get_orders_product(db)
+    return templates.TemplateResponse("listaEncargoCliente.html.jinja", {"request": request, "Charges": charges})
+
+# Ruta para redirigir al artesano al catálogo de encargos (le aparecen los encargos de todos los clientes)
+@app.get("/charge/artesan/list", response_class=HTMLResponse, name="read_encargos_artesano")
+async def read_encargos_artesano(request: Request, db: Session = Depends(get_db)):
+    charges = crudEncargo.get_orders_product(db)
+    return templates.TemplateResponse("listaEncargoArtesano.html.jinja", {"request": request, "Charges": charges})
 
 @app.post("/charge/delete/{charge_id}", response_class=HTMLResponse)
-async def delete_charge(charge_id: int, request: Request, db: Session = Depends(get_db)):
+async def delete_charge(request: Request, charge_id: int, db: Session = Depends(get_db)):
     crudEncargo.delete_charge(db=db, charge_id=charge_id)
-    charges = crudEncargo.get_charge(db)
-    return templates.TemplateResponse("listaEncargoArtesano.html.jinja", {"request": request, "Orders": charges})
+    return RedirectResponse(url='/charge/client/charges/', status_code=303)
 
-"""
+@app.post("/charge/calculate")
+async def calcular_monto(
+    request: Request,
+    id_producto: int = Form(...),
+    cantidad_productos: int = Form(...),
+    metodo_envio: str = Form(...),
+    descripcion_encargo: str = Form(...),
+    precio_unitario: float = Form(...),
+    db: Session = Depends(get_db)
+):
+    # Validar disponibilidad del producto
+    product = crudProducto.get_product_by_id(db, id_producto)
+    if not product or product.cantidad_disponible < cantidad_productos:
+        return templates.TemplateResponse("crearEncargoCliente.html.jinja", {"request": request, "message": "Cantidad de productos no disponible."})
+    
+    # Calcular el monto total y el IVA
+    monto_base = cantidad_productos * precio_unitario
+    iva = monto_base * 0.16
+    monto_total = monto_base + iva
+
+    return templates.TemplateResponse("crearEncargoCliente.html.jinja", {
+        "request": request,
+        "product": product,
+        "cantidad_productos": cantidad_productos,
+        "metodo_envio": metodo_envio,
+        "descripcion_encargo": descripcion_encargo,
+        "precio_unitario": precio_unitario,
+        "monto_total": monto_total
+    })
+
+@app.post("/charge/create/", response_model=schemas.Charge)
+async def solicitar_encargo(
+    request: Request,
+    id_producto: int = Form(...),
+    cantidad_productos: int = Form(...),
+    metodo_envio: str = Form(...),
+    descripcion_encargo: str = Form(...),
+    monto_total: float = Form(...), 
+    db: Session = Depends(get_db)
+):
+    cedula_identidad = request.session.get('cedula_identidad')
+    if not cedula_identidad:
+        raise HTTPException(status_code=401, detail="Unauthorized. Please log in as an artesano.")
+    
+    # Validar disponibilidad del producto
+    product = crudProducto.get_product_by_id(db, id_producto)
+    if not product or product.cantidad_disponible < cantidad_productos:
+        return templates.TemplateResponse("crearEncargoCliente.html.jinja", {"request": request, "message": "Cantidad de productos no disponible."})
+    
+    fecha_encargo = date.today()
+    estado = "Solicitado"
+
+    charge = schemas.ChargeCreate(
+        id_producto=id_producto,
+        cedula_identidad=int(cedula_identidad),
+        cantidad_productos=cantidad_productos,
+        metodo_envio=metodo_envio,
+        descripcion_encargo=descripcion_encargo,
+        fecha_encargo=fecha_encargo,
+        monto_total=monto_total,
+        estado_encargo=estado
+    )
+    
+    crudEncargo.create_charge(db, charge)
+    charges = crudEncargo.get_orders_product(db)
+    return templates.TemplateResponse("listaEncargoCliente.html.jinja", {"request": request, "Charges": charges})
+
+# Ruta para que el artesano establezca un encargo
+@app.post("/charge/artesian/update/", response_class=HTMLResponse)
+async def set_up_encargo_artesano(
+    request: Request,
+    id_encargo: int = Form(...),
+    id_producto: int = Form(...),
+    cantidad_productos: int = Form(...),
+    metodo_envio: str = Form(...),
+    descripcion_encargo: str = Form(...),
+    monto_total: float = Form(...), 
+    fecha_encargo: date = Form(...),
+    db: Session = Depends(get_db)
+):
+    cedula_identidad = request.session.get('cedula_identidad')
+    if not cedula_identidad:
+        raise HTTPException(status_code=401, detail="Unauthorized. Please log in as an artesano.")
+
+    charge_update = schemas.ChargeUpdate(
+        id_encargo=id_encargo,
+        id_producto=id_producto,
+        cedula_identidad=int(cedula_identidad),
+        cantidad_productos=cantidad_productos,
+        metodo_envio=metodo_envio,
+        descripcion_encargo=descripcion_encargo,
+        fecha_encargo=fecha_encargo,
+        monto_total=monto_total,
+        estado_encargo="Procesando"
+    )
+    crudEncargo.update_charge(db=db, charge_id=id_encargo , charge=charge_update)
+
+    # Obtener los encargos actualizados
+    charges = crudEncargo.get_orders_product(db)
+    return templates.TemplateResponse("listaEncargoArtesano.html.jinja", {"request": request, "Charges": charges})
+
+# Ruta para que el cliente acepte un encargo
+@app.post("/charge/client/accept/", response_class=HTMLResponse)
+async def accept_encargo_cliente(
+    request: Request,
+    id_encargo: int = Form(...),
+    id_producto: int = Form(...),
+    cantidad_productos: int = Form(...),
+    metodo_envio: str = Form(...),
+    descripcion_encargo: str = Form(...),
+    monto_total: float = Form(...), 
+    fecha_encargo: date = Form(...),
+    db: Session = Depends(get_db)
+):
+    cedula_identidad = request.session.get('cedula_identidad')
+    if not cedula_identidad:
+        raise HTTPException(status_code=401, detail="Unauthorized. Please log in as an artesano.")
+
+    charge_update = schemas.ChargeUpdate(
+        id_encargo=id_encargo,
+        id_producto=id_producto,
+        cedula_identidad=int(cedula_identidad),
+        cantidad_productos=cantidad_productos,
+        metodo_envio=metodo_envio,
+        descripcion_encargo=descripcion_encargo,
+        fecha_encargo=fecha_encargo,
+        monto_total=monto_total,
+        estado_encargo="Aceptado"
+    )
+    crudEncargo.update_charge(db=db, charge_id=id_encargo , charge=charge_update)
+
+    # Obtener los encargos actualizados
+    charges = crudEncargo.get_orders_product(db)
+    return templates.TemplateResponse("listaEncargoCliente.html.jinja", {"request": request, "Charges": charges})
