@@ -1,39 +1,72 @@
 {% extends 'baseCliente.html.jinja' %}
 
 {% block content %}
-<h1>{% block title %} Crear Encargo {% endblock %}</h1>
+<h1>{% block title %} Realice su encargo {% endblock %}</h1>
+
+<form action="/charge/calculate" method="post">
+
+    <div>
+        <input type="hidden" class="form-control" name="precio_unitario" value="{{ product.precio_unitario }}" required>
+        <br>
+    </div>
     
-<form action="{{ url_for('create_charge_post') }}" method="post">
     <div>
-        <label for="id_producto">ID Producto: </label><br>
-        <input type="number" class="form-control" name="id_producto" placeholder="ID del Producto" required>
+        <input type="hidden" class="form-control" name="id_producto" value="{{ product.id_producto }}" readonly>
         <br>
     </div>
+
     <div>
-        <label for="cedula_identidad">Cédula de Identidad: </label><br>
-        <input type="number" class="form-control" name="cedula_identidad" placeholder="Cédula de Identidad" required>
+        <label for="nombre">Nombre: </label><br>
+        <input disabled type="text" class="form-control" name="nombre" value="{{ product.nombre }}" readonly>
         <br>
     </div>
+
     <div>
-        <label for="descripcion_encargo">Descripción del Encargo: </label><br>
-        <textarea class="form-control" name="descripcion_encargo" placeholder="Descripción del Encargo" required></textarea>
+        <label for="precio_unitario2">Precio por unidad: </label><br>
+        <input  disabled type="number" class="form-control" name="precio_unitario2" value="{{ product.precio_unitario }}" required>
         <br>
     </div>
+
     <div>
-        <label for="fecha_encargo">Fecha del Encargo: </label><br>
-        <input type="date" class="form-control" name="fecha_encargo" required>
+        <label for="descripcion">Descripción: </label><br>
+        <textarea disabled class="form-control" name="descripcion" readonly>{{ product.descripcion }}</textarea>
         <br>
     </div>
+
     <div>
-        <label for="metodo_envio">Método de Envío: </label><br>
-        <input type="text" class="form-control" name="metodo_envio" placeholder="Método de Envío" required>
+        <label for="metodo_envio">Método de envío: </label><br>
+        <select  class="form-control" name="metodo_envio" required>
+            <option value="agencia" {% if metodo_envio == "agencia" %}selected{% endif %}>Agencia de envío de paquetes</option>
+            <option value="retiro" {% if metodo_envio == "retiro" %}selected{% endif %}>Retiro en la fábrica del productor</option>
+        </select>
         <br>
     </div>
+
     <div>
-        <label for="estado_encargo">Estado del Encargo: </label><br>
-        <input type="text" class="form-control" name="estado_encargo" placeholder="Estado del Encargo" required>
+        <label for="cantidad_productos">Cantidad de este producto que desea llevar: </label><br>
+        <input type="number" class="form-control" name="cantidad_productos" min="1" max="{{ product.cantidad_productos }}" value="{{ cantidad_productos | default('') }}" required>
         <br>
     </div>
-    <input type="submit" value="Encargar">
+
+    <div>
+        <label for="monto_total">Monto total a pagar: </label><br>
+        <input disabled type="number" class="form-control" name="monto_total" value="{{ monto_total | default('') }}" readonly>
+        <br>
+    </div>
+
+    <button type="submit">Calcular</button>
 </form>
+
+{% if monto_total %}
+<form method="post" action="/charge/create">
+    <input type="hidden" name="id_producto" value="{{ product.id_producto }}">
+    <input type="hidden" name="cantidad_productos" value="{{ cantidad_productos }}">
+    <input type="hidden" name="metodo_envio" value="{{ metodo_envio }}">
+    <input type="hidden" name="precio_unitario" value="{{ precio_unitario }}">
+    <input type="hidden" name="monto_total" value="{{ monto_total }}">
+    <input type="submit" value="Confirmar Encargo">
+</form>
+{% endif %}
 {% endblock %}
+
+ 

@@ -29,6 +29,9 @@ def get_charge_by_id(db: Session, charge_id: int):
 def get_charge(db: Session, skip: int = 0, limit: int = 10):
     return db.query(models.Encargo).offset(skip).limit(limit).all()
 
+def get_orders_product(db: Session):
+    return db.query(models.Encargo, models.Producto).join(models.Producto, models.Encargo.id_producto == models.Producto.id_producto).all()
+
 
 def update_charge(db: Session, charge_id: int, charge: schemas.ChargeUpdate):
     db_charge = (db, charge_id)

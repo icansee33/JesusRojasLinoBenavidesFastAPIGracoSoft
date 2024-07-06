@@ -86,6 +86,7 @@ class ChargeBase(BaseModel):
     fecha_encargo: date
     cantidad_productos: int
     metodo_envio: str
+    monto_total:float
     estado_encargo: str
 
 class ChargeCreate(ChargeBase):
@@ -93,10 +94,10 @@ class ChargeCreate(ChargeBase):
 
 class ChargeUpdate(ChargeBase):
     id_encargo: int
+    fecha_encargo: date
+    estado_encargo: str
 
 class Charge(ChargeBase):
-    id_encargo: int
-
     class Config:
         orm_mode = True
 
@@ -130,6 +131,9 @@ class PedidoCreate(PedidoBase):
 
 class PedidoUpdate(BaseModel):
     id_pedido: int
+    monto_total: float 
+    fecha_pedido: date
+    estado: str
 
 class Pedido(PedidoBase):
     id_pedido: int

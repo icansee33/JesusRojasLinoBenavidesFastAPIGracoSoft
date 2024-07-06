@@ -1,0 +1,53 @@
+{% extends 'baseArtesano.html.jinja' %}
+
+{% block content %}
+<h1>{% block title %} Cotización {% endblock %}</h1>
+
+<form action="/encargo/artesan/update/" method="post">
+    <div>
+        <input type="hidden" class="form-control" name="id_encargo" value="{{ encargo.id_encargo }}" readonly>
+        <br>
+    </div>
+
+    <div>
+        <input type="hidden" class="form-control" name="id_producto" value="{{ encargo.id_producto }}" readonly>
+        <br>
+    </div>
+
+    <div>
+        <label for="precio_unitario">Precio por unidad: </label><br>
+        <input type="number" class="form-control" name="precio_unitario" value="{{ encargo.precio_unitario }}" required>
+        <br>
+    </div>
+
+    <div>
+        <label for="descripcion">Descripción: </label><br>
+        <textarea class="form-control" name="descripcion" required>{{ encargo.descripcion }}</textarea>
+        <br>
+    </div>
+
+    <div>
+        <label for="metodo_envio">Método de envío: </label><br>
+        <select class="form-control" name="metodo_envio" required>
+            <option value="agencia" {% if encargo.metodo_envio == "agencia" %}selected{% endif %}>Agencia de envío de paquetes</option>
+            <option value="retiro" {% if encargo.metodo_envio == "retiro" %}selected{% endif %}>Retiro en la fábrica del productor</option>
+        </select>
+        <br>
+    </div>
+
+    <div>
+        <label for="cantidad_productos">Cantidad de productos: </label><br>
+        <input type="number" class="form-control" name="cantidad_productos" value="{{ encargo.cantidad_productos }}" required>
+        <br>
+    </div>
+
+    <div>
+        <label for="monto_total">Monto total: </label><br>
+        <input type="number" class="form-control" name="monto_total" value="{{ encargo.monto_total }}" readonly>
+        <br>
+    </div>
+
+    <button type="submit">Guardar cambios</button>
+</form>
+{% endblock %}
+

@@ -83,11 +83,12 @@ class Encargo(Base):
     id_encargo = Column(Integer, primary_key=True)
     id_producto= Column(Integer, ForeignKey('productos.id_producto'), nullable=False)
     cedula_identidad = Column(Integer, ForeignKey('usuarios.cedula_identidad'), nullable=False)
-    estado_encargo = Column(String(50), nullable=False)
     fecha_encargo = Column(Date, nullable=False)
     metodo_envio = Column(String(50), nullable=False)
     descripcion_encargo = Column(String, nullable=False)
-
+    monto_total = Column(Double(10, 2), nullable=False)
+    estado_encargo = Column(String(50), nullable=False)
+    
     producto = relationship("Producto", back_populates="encargos")
     cliente = relationship("Usuario", back_populates="encargos")
 

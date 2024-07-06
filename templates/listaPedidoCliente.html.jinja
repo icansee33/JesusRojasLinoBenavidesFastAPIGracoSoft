@@ -32,8 +32,13 @@
             </form>
 
             <div>
-                <form action="/order/client/accept{{ order.id_pedido }}" method="post" style="display:inline;">
-                <input type="hidden" class="form-control" name="id_producto"  value="{{ order.id_pedido }}">
+                <form action="/order/client/accept/" method="post" style="display:inline;">
+                <input type="hidden" class="form-control" name="id_pedido" value="{{ order.id_pedido }}">
+                <input type="hidden" class="form-control" name="id_producto" value="{{ product.id_producto }}">
+                <input type="hidden" class="form-control" name="cantidad_productos" value="{{ order.cantidad_productos }}">
+                <input type="hidden" class="form-control" name="metodo_envio" value="{{ order.metodo_envio }}">
+                <input type="hidden" class="form-control" name="monto_total" value="{{ order.monto_total }}">
+                <input type="hidden" class="form-control" name="fecha_pedido" value="{{ order.fecha_pedido }}">
                 <button type="submit">Aceptar</button>
             </form>
 

@@ -467,22 +467,11 @@ async def solicitar_producto(request: Request, product_id: int, db: Session = De
         raise HTTPException(status_code=404, detail="Producto no encontrado")
     return templates.TemplateResponse("crearPedidoCliente.html.jinja", {"request": request, "product": product})
 
-"""
-# Ruta para redirigir al cliente a la lista de sus pedidos
-@app.get("/order/client/orders/", response_class=HTMLResponse, name="read_pedidos_cliente")
-async def read_pedidos_cliente(request: Request, db: Session = Depends(get_db)):
-    orders = crudPedido.get_orders_product(db)
-    return templates.TemplateResponse("listaPedidoCliente.html.jinja", {"request": request, "Orders": orders})
-"""
 
 #Reedirigir al cliente a la lista de sus pedidos
 @app.get("/order/client/orders/", response_class=HTMLResponse, name="read_pedidos_cliente")
 async def read_pedidos_cliente(request: Request, db: Session = Depends(get_db)):
-    cedula_identidad = request.session.get('cedula_identidad')
-    if not cedula_identidad:
-        raise HTTPException(status_code=401, detail="Unauthorized. Please log in as a client.")
-    
-    orders = crudPedido.get_orders_by_user(db, cedula_identidad)
+    orders = crudPedido.get_orders_by_user(db)
     return templates.TemplateResponse("listaPedidoCliente.html.jinja", {"request": request, "Orders": orders})
 
 
@@ -593,14 +582,14 @@ async def set_up_pedido_artesano(
         estado=estado
     )
     crudPedido.update_order(db=db, order=order_update, order_id=id_pedido)
-    orders = crudPedido.get_orders(db)
+    orders = crudPedido.get_orders_product(db)
     print("Id:", order_update)
     return templates.TemplateResponse("listaPedidoArtesano.html.jinja", {"request": request, "Orders": orders})
 
 
 
 # Ruta para que el cliente acepte un pedido
-@app.post(  "/order/client/accept", response_class=HTMLResponse)
+@app.post("/order/client/accept", response_class=HTMLResponse)
 async def accept_pedido_cliente(
     request: Request,
     id_pedido: int = Form(...),

@@ -1,25 +1,33 @@
 {% extends 'baseArtesano.html.jinja' %}
 
 {% block content %}
-<h1>{% block title %} Lista de Pediso {% endblock %}</h1>
+<h1>{% block title %} Sus encargos {% endblock %}</h1>
     
 <table id="formcenter">
     <tr>
-        <th>ID del pedido</th>
-        <th>Cliente</th>
-        <th>Fecha del pedido</th>
-        <th>N° de productos</th>
-        <th>Estado (Procesando/Cancelado/Establecido/Entregado)</th>
+        <th>ID del encargo</th>
+        <th>Producto</th>
+        <th>Fecha</th>
+        <th>Monto</th>
+        <th>Unidades</th>
+        <th>Método de envio</th>
+        <th>Estado</th>
+        <th>Imagen</th>
     </tr>
-    {% for order in Orders %}
+    {% for encargo, product in Encargos %}
     <tr>
-        <td>{{ order.id_pedido }}</td>
-
-        <td>{{ order.fecha_pedido }}</td>
-        <td>{{ order.cantidad_productos }}</td>
-        <td>{{ order.estado }}</td>
+        <td>{{ encargo.id_encargo }}</td>
+        <td>{{ product.nombre }}</td>
+        <td>{{ encargo.fecha_encargo }}</td>
+        <td>{{ encargo.monto_total }}</td>
+        <td>{{ encargo.cantidad_productos }}</td>
+        <td>{{ encargo.metodo_envio }}</td>
+        <td>{{ encargo.estado }}</td>
+        <td><img src="/{{ product.imagen }}" alt="{{ product.nombre }}" width="100"></td>
+        <td>
+           <button value="Cotizar" onclick="window.location.href='/encargo/artesan/update/{{encargo.id_encargo}}'">Cotizar</button>
+        </td>
     </tr>
     {% endfor %}
 </table>
 {% endblock %}
-

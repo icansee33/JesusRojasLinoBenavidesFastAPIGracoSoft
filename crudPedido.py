@@ -29,14 +29,13 @@ def get_orders(db: Session, skip: int = 0, limit: int = 10):
 
 def update_order(db: Session, order_id: int, order: schemas.PedidoUpdate):
     db_order = get_order_by_id(db, order_id)   
-    if db_order is None:
+    if db_order is not None:
         for key, value in order.dict().items():
             if value is not None:
                 setattr(db_order, key, value)
         db.commit()
         db.refresh(db_order)
     return db_order
-
 
 def get_orders_product(db: Session):
     return db.query(models.Pedido, models.Producto).join(models.Producto, models.Pedido.id_producto == models.Producto.id_producto).all()
